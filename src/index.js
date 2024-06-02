@@ -4,9 +4,9 @@ import "dotenv/config";
 import "./Server.js";
 import "./AppRouter.js";
 
+import logger from "./util/logger.js";
+
 moment.tz.setDefault("Asia/Singapore");
 
-import Logger from "./util/logger.js";
-
 // Run logs sweeper
-Logger.sweeper();
+logger.sweeper();

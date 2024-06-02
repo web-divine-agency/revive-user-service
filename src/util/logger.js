@@ -3,7 +3,7 @@ import moment from "moment";
 
 const LOG_LIMIT = 1024; // KB
 
-const Logger = {
+export default {
   /**
    * Console log output
    * @param {*} messages
@@ -55,5 +55,3 @@ const Logger = {
     });
   },
 };
-
-export default Logger;
