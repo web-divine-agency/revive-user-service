@@ -55,7 +55,6 @@ const UserController = {
       Validator.required(req.body, "first_name"),
       Validator.required(req.body, "last_name"),
       Validator.required(req.body, "email"),
-      Validator.required(req.body, "mobile"),
       Validator.required(req.body, "type"),
     ]);
 

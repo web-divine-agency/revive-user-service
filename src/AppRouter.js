@@ -5,20 +5,15 @@ import { app } from "./Server.js";
 import Controller from "./controllers/Controller.js";
 import UserController from "./controllers/UserController.js";
 
-const admin = express.Router();
-const customer = express.Router();
+const portal = express.Router();
 
 /**
- * Admin routes
+ * Portal routes
  */
-app.use("/admin", admin);
-// Users
-admin.get("/users", UserController.list);
-
-/**
- * Customer routes
- */
-app.use("/customer", customer);
+app.use("/portal", portal);
+portal.get("/users", UserController.list);
+portal.post("/users", UserController.create);
+portal.get("/users/:id", UserController.read);
 
 /**
  * Base routes
