@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "UserService",
+      name: "UserService.1.1",
       namespace: "skhillz-user-service",
       script: "./src/index.js",
       watch: ["./src", "./src/*.js"],
