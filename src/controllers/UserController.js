@@ -44,6 +44,12 @@ export default {
       });
   },
 
+  /**
+   * Get a user using firebase uid
+   * @param {*} req
+   * @param {*} res
+   * @returns
+   */
   getByFirebaseUid: (req, res) => {
     let validation = Validator.check([Validator.required(req.params, "firebase_uid")]);
 
