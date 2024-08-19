@@ -1,6 +1,3 @@
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../config/firebase.js";
-
 export default {
   /**
    * Validation for required field

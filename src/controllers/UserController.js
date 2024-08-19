@@ -36,7 +36,11 @@ export default {
     })
       .then((response) => {
         Logger.out([`${req.method} ${req.originalUrl} ${res.statusCode}`]);
-        return res.json(`${req.method} ${req.originalUrl} ${res.statusCode}`);
+        console.log(response);
+        return res.json({
+          msg: `${req.method} ${req.originalUrl} ${res.statusCode}`,
+          id: response.insertId,
+        });
       })
       .catch((error) => {
         Logger.error([JSON.stringify(error)]);
