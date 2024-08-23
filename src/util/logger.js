@@ -32,7 +32,7 @@ export default {
    * This will maintain log file to less than 1024 KB
    */
   sweeper: () => {
-    watchFile("logs/error.log", (curr, prev) => {
+    watchFile("logs/error.log", () => {
       let fileStats = statSync("logs/error.log");
       let size = fileStats.size / LOG_LIMIT;
 
@@ -43,7 +43,7 @@ export default {
       }
     });
 
-    watchFile("logs/out.log", (curr, prev) => {
+    watchFile("logs/out.log", () => {
       let fileStats = statSync("logs/out.log");
       let size = fileStats.size / LOG_LIMIT;
 

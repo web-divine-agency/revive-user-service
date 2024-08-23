@@ -11,18 +11,19 @@ var fields = {
     "updated_at_order DOUBLE NOT NULL",
     "deleted_at TIMESTAMP NULL",
     "deleted_at_order DOUBLE NULL",
+    "verified_at TIMESTAMP NULL",
+    "verified_at_order DOUBLE NULL",
+    "type VARCHAR(255) NOT NULL",
     "first_name VARCHAR(255) NOT NULL",
     "middle_name VARCHAR(255) NULL",
     "last_name VARCHAR(255) NOT NULL",
     "email VARCHAR(255) NOT NULL UNIQUE",
-    "type VARCHAR(255) NOT NULL",
-    "firebase_uid VARCHAR(255) NOT NULL",
-    "session TEXT NULL",
-    "session_expiration DOUBLE NULL",
+    "mobile VARCHAR(255) NULL",
+    "password VARCHAR(255) NOT NULL",
   ],
 };
 
-mysqlClient.query(`create table ${table} (${[...fields[table]]})`, function (err, result) {
+mysqlClient.query(`create table ${table} (${[...fields[table]]})`, function (err) {
   if (err) throw err;
   console.log(`${table} table: success`);
   process.exit();

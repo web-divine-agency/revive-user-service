@@ -12,11 +12,11 @@ export default {
    */
   create: (req, res) => {
     let validation = Validator.check([
+      Validator.required(req.body, "type"),
       Validator.required(req.body, "first_name"),
       Validator.required(req.body, "last_name"),
       Validator.required(req.body, "email"),
-      Validator.required(req.body, "type"),
-      Validator.required(req.body, "firebase_uid"),
+      Validator.required(req.body, "password"),
     ]);
 
     if (!validation.pass) {
@@ -36,7 +36,6 @@ export default {
     })
       .then((response) => {
         Logger.out([`${req.method} ${req.originalUrl} ${res.statusCode}`]);
-        console.log(response);
         return res.json({
           msg: `${req.method} ${req.originalUrl} ${res.statusCode}`,
           id: response.insertId,
