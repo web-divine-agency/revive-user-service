@@ -46,29 +46,4 @@ export default {
         return res.status(500).json(error);
       });
   },
-
-  /**
-   * Get a user using firebase uid
-   * @param {*} req
-   * @param {*} res
-   * @returns
-   */
-  getByFirebaseUid: (req, res) => {
-    let validation = Validator.check([Validator.required(req.params, "firebase_uid")]);
-
-    if (!validation.pass) {
-      Logger.error([JSON.stringify(validation)]);
-      return res.status(422).json(validation.result);
-    }
-
-    MysqlService.select("users", `AND firebase_uid = "${req.params.firebase_uid}"`)
-      .then((response) => {
-        Logger.out([`${req.method} ${req.originalUrl} ${res.statusCode}`]);
-        return res.json(response[0]);
-      })
-      .catch((error) => {
-        Logger.error([JSON.stringify(error)]);
-        return res.status(500).json(error);
-      });
-  },
 };

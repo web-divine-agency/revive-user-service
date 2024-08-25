@@ -6,7 +6,7 @@ export default {
    * @returns
    */
   required: (req, field) => {
-    return req[field] ? "valid" : `${field} is required`;
+    return req[field] ? { key: field, value: "valid" } : { key: field, value: "required" };
   },
 
   /**
@@ -35,15 +35,15 @@ export default {
    * @returns
    */
   check: (validation) => {
-    let validated = [];
+    let validated = {};
 
     validation.forEach((i) => {
-      if (i != "valid") {
-        validated.push(i);
+      if (i.value != "valid") {
+        validated[i.key] = i.value;
       }
     });
 
-    if (validated.length > 0) {
+    if (Object.keys(validated).length > 0) {
       return { pass: false, result: validated };
     }
     return { pass: true, result: validated };

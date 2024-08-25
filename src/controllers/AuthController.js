@@ -56,6 +56,12 @@ export default {
       });
   },
 
+  /**
+   * User login
+   * @param {*} req
+   * @param {*} res
+   * @returns
+   */
   login: async (req, res) => {
     let validation = Validator.check([
       Validator.required(req.body, "email"),
@@ -97,6 +103,30 @@ export default {
     } else {
       Logger.error([JSON.stringify({ msg: "Not authorized" })]);
       return res.status(401).json({ msg: "Not authorized" });
+    }
+  },
+
+  /**
+   * Check if user is authenticated
+   * @param {*} req
+   * @param {*} res
+   * @returns
+   */
+  authenticated: (req, res) => {
+    let token = req.header("Authorization");
+
+    if (!token) {
+      Logger.error([JSON.stringify({ auth: false })]);
+      return res.status(401).send(false);
+    }
+
+    try {
+      jwt.verify(token, process.env.JWT_SECRET);
+      Logger.error([JSON.stringify({ auth: true })]);
+      return res.send(true);
+    } catch {
+      Logger.error([JSON.stringify({ auth: false })]);
+      return res.status(401).send(false);
     }
   },
 };
