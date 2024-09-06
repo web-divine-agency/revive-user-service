@@ -10,3 +10,4 @@
 | EmailService      | Emails Management API      | 8805 | 4405  |
 | EnrollmentService | Enrollments Management API | 8806 | 4406  |
 | ScheduleService   | Schedules Management API   | 8807 | 4407  |
+| DocumentService   | Documents Management API   | 8808 | 4408  |

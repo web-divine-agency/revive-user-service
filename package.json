@@ -1,7 +1,7 @@
 {
   "name": "skhillz-user-service",
   "version": "1.0.0",
-  "description": "API service for user management",
+  "description": "API service for users management",
   "main": "index.js",
   "type": "module",
   "scripts": {
