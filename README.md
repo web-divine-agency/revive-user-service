@@ -11,3 +11,4 @@
 | EnrollmentService | Enrollments Management API | 8806 | 4406  |
 | ScheduleService   | Schedules Management API   | 8807 | 4407  |
 | DocumentService   | Documents Management API   | 8808 | 4408  |
+| TeacherService    | Teachers Management API    | 8809 | 4409  |

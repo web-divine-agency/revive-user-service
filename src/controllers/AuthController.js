@@ -87,8 +87,8 @@ export default {
 
     // Check length before using timingSageEqual
     if (userPassword.length !== reqPassword.length) {
-      Logger.error([JSON.stringify({ msg: "Not authorized" })]);
-      return res.status(401).json({ msg: "Not authorized" });
+      Logger.error([JSON.stringify({ msg: "Invalid credentials" })]);
+      return res.status(401).json({ msg: "Invalid credentials" });
     }
 
     if (timingSafeEqual(Buffer.from(userPassword), Buffer.from(reqPassword))) {
@@ -101,8 +101,8 @@ export default {
       Logger.out([`${req.method} ${req.originalUrl} ${res.statusCode}`]);
       return res.json({ ...user[0], token: token });
     } else {
-      Logger.error([JSON.stringify({ msg: "Not authorized" })]);
-      return res.status(401).json({ msg: "Not authorized" });
+      Logger.error([JSON.stringify({ msg: "Invalid credentials" })]);
+      return res.status(401).json({ msg: "Invalid credentials" });
     }
   },
 
@@ -122,7 +122,7 @@ export default {
 
     try {
       jwt.verify(token, process.env.JWT_SECRET);
-      Logger.error([JSON.stringify({ auth: true })]);
+      Logger.out([JSON.stringify({ auth: true })]);
       return res.send(true);
     } catch {
       Logger.error([JSON.stringify({ auth: false })]);
