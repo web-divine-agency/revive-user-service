@@ -12,6 +12,7 @@ const portal = express.Router();
  * Portal routes
  */
 app.use("/portal", portal);
+portal.get("/users", UserController.list);
 portal.post("/users", UserController.create);
 
 /**

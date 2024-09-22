@@ -4,6 +4,32 @@ import Validator from "../util/validator.js";
 import MysqlService from "../services/MysqlService.js";
 
 export default {
+  list: (req, res) => {
+    let validation = Validator.check([
+      Validator.required(req.query, "type"),
+      Validator.required(req.query, "show"),
+      Validator.required(req.query, "page"),
+    ]);
+
+    if (!validation.pass) {
+      Logger.error([JSON.stringify(validation)]);
+      return res.status(422).json(validation.result);
+    }
+
+    let query = `SELECT * FROM users WHERE type = "${req.query.type}" AND deleted_at IS NULL`;
+    let paginateQuery = `SELECT COUNT(id) as 'rows' FROM users WHERE type = "${req.query.type}" AND deleted_at IS NULL`;
+
+    MysqlService.paginate(query, paginateQuery, req.query.show, req.query.page)
+      .then((response) => {
+        Logger.out([`${req.method} ${req.originalUrl} ${res.statusCode}`]);
+        return res.json(response);
+      })
+      .catch((error) => {
+        Logger.error([JSON.stringify(error)]);
+        return res.status(500).json(error);
+      });
+  },
+
   /**
    * Create a user
    * @param {*} req
