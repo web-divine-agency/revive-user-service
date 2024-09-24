@@ -81,11 +81,11 @@ export default {
 
     return new Promise((resolve, reject) => {
       if (page - 1 < 0) {
-        return reject([]);
+        return resolve([]);
       }
 
       if (page - 1 >= list.length) {
-        return reject([]);
+        return resolve([]);
       }
 
       let offset = list[page - 1][0];
