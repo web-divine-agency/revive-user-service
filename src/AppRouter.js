@@ -15,6 +15,8 @@ app.use("/portal", portal);
 portal.get("/users", UserController.list);
 portal.post("/users", UserController.create);
 
+portal.get("/users-count", UserController.count);
+
 /**
  * Base routes
  */

@@ -4,6 +4,31 @@ import Validator from "../util/validator.js";
 import MysqlService from "../services/MysqlService.js";
 
 export default {
+  /**
+   * Count users
+   * @param {*} req
+   * @param {*} res
+   */
+  count: async (req, res) => {
+    let query = `SELECT * FROM users WHERE type = "${req.query.type}" AND deleted_at IS NULL`;
+
+    MysqlService.select(query)
+      .then((response) => {
+        Logger.out([`${req.method} ${req.originalUrl} ${res.statusCode}`]);
+        return res.json(response.length);
+      })
+      .catch((error) => {
+        Logger.error([JSON.stringify(error)]);
+        return res.status(500).json(error);
+      });
+  },
+
+  /**
+   * List of users
+   * @param {*} req
+   * @param {*} res
+   * @returns
+   */
   list: (req, res) => {
     let validation = Validator.check([
       Validator.required(req.query, "type"),
