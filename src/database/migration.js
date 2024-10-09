@@ -1,4 +1,11 @@
-import mysqlClient from "../config/mysql.js";
+import mysql from "mysql";
+
+var mysqlClient = mysql.createConnection({
+  host: "localhost",
+  user: process.env.MYSQL_USER,
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
+});
 
 var table = process.env.npm_config_table;
 
@@ -14,10 +21,10 @@ var fields = {
     "password VARCHAR(255) NOT NULL",
     "verified_at TIMESTAMP NULL",
     "verified_at_order DOUBLE NULL",
-    "created_at TIMESTAMP NOT NULL",
-    "created_at_order DOUBLE NOT NULL",
-    "updated_at TIMESTAMP NOT NULL",
-    "updated_at_order DOUBLE NOT NULL",
+    "created_at TIMESTAMP NULL",
+    "created_at_order DOUBLE NULL",
+    "updated_at TIMESTAMP NULL",
+    "updated_at_order DOUBLE NULL",
     "deleted_at TIMESTAMP NULL",
     "deleted_at_order DOUBLE NULL",
   ],
