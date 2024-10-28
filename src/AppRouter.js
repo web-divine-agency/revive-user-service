@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import bodyParser from "body-parser";
 
 import { app } from "./Server.js";
@@ -7,18 +8,18 @@ import Controller from "./controllers/Controller.js";
 import UserController from "./controllers/UserController.js";
 import AuthController from "./controllers/AuthController.js";
 
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*"); // Replace with your allowed origin
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "*");
+// app.use((req, res, next) => {
+//   res.header("Access-Control-Allow-Origin", "*"); // Replace with your allowed origin
+//   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+//   res.header("Access-Control-Allow-Headers", "*");
 
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
+//   if (req.method === "OPTIONS") {
+//     return res.status(200).end();
+//   }
 
-  next();
-});
-
+//   next();
+// });
+app.use(cors());
 app.use(bodyParser.json());
 
 const portal = express.Router();
