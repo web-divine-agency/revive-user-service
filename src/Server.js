@@ -32,7 +32,7 @@ const options = {
   },
 };
 
-const acceptedDomains = ["staging-portal.skhillz.com"];
+const acceptedDomains = ["staging-portal.skhillz.com", "https://staging-portal.skhillz.com"];
 
 const corsConfig = {
   origin: (origin, callback) => {
