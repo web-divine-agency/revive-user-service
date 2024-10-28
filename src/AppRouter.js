@@ -8,7 +8,7 @@ import UserController from "./controllers/UserController.js";
 import AuthController from "./controllers/AuthController.js";
 
 app.use((req, res, next) => {
-  res.header("*"); // Replace with your allowed origin
+  res.header("Access-Control-Allow-Origin", "*"); // Replace with your allowed origin
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 
