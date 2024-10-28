@@ -6,7 +6,8 @@ COPY package.json /
 
 RUN rm -rf node_modules \
   && rm -rf package-lock.json \
-  && npm install -g nodemon
+  && npm install -g nodemon \
+  && npm install
 
 COPY . .
 

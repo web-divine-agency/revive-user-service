@@ -7,10 +7,16 @@ var mysqlClient = mysql.createConnection({
   database: process.env.MYSQL_DATABASE,
 });
 
-var table = process.env.npm_config_table;
+var exec = process.env.npm_config_exec;
 
-var fields = {
-  users: [
+var enums = {
+  create_classes_table: 0,
+  add_on_going_col: 1,
+};
+
+var statements = [
+  // create users table
+  `CREATE TABLE users (${[
     "id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY",
     "type VARCHAR(255) NOT NULL",
     "first_name VARCHAR(255) NOT NULL",
@@ -27,11 +33,20 @@ var fields = {
     "updated_at_order DOUBLE NULL",
     "deleted_at TIMESTAMP NULL",
     "deleted_at_order DOUBLE NULL",
-  ],
-};
+  ]})`,
+];
 
-mysqlClient.query(`create table ${table} (${[...fields[table]]})`, function (err) {
-  if (err) throw err;
-  console.log(`${table} table: success`);
-  process.exit();
-});
+if (exec) {
+  mysqlClient.query(statements[enums[exec]], function (err) {
+    if (err) throw err;
+    console.log("Success");
+  });
+} else {
+  statements.forEach((statement) => {
+    mysqlClient.query(statement, function (err) {
+      if (err) throw err;
+      console.log("Success");
+    });
+  });
+}
+

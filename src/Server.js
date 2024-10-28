@@ -32,7 +32,19 @@ const options = {
 
 const app = express();
 
-app.use(cors());
+const acceptedDomains = [
+  "user-service.skhillz.com"
+]
+
+const corsConfig = {
+  optionsSuccessStatus: 200,
+  origin: (origin, callback) => {
+    const isOriginWhitelisted = origin && acceptedDomains.includes(origin);
+    callback(null, isOriginWhitelisted);
+  }
+}
+
+app.use(cors(corsConfig));
 app.use(bodyParser.json());
 
 const server = {
