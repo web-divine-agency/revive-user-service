@@ -1,6 +1,4 @@
 import express from "express";
-import cors from "cors";
-import bodyParser from "body-parser";
 
 import { createServer as createHttpServer } from "http";
 import { createServer as createHttpsServer } from "https";
@@ -31,22 +29,6 @@ const options = {
     key: path.key,
   },
 };
-
-const acceptedDomains = ["staging-portal.skhillz.com", "https://staging-portal.skhillz.com"];
-
-const corsConfig = {
-  origin: (origin, callback) => {
-    if (acceptedDomains.includes(origin)) {
-      callback(null, origin);
-    }
-  },
-  optionsSuccessStatus: 200,
-};
-
-app.use(cors(corsConfig));
-app.options("*", cors(corsConfig));
-
-app.use(bodyParser.json());
 
 const server = {
   http: createHttpServer(app),

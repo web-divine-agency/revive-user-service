@@ -1,10 +1,14 @@
 import express from "express";
+import cors from "cors";
 
 import { app } from "./Server.js";
 
 import Controller from "./controllers/Controller.js";
 import UserController from "./controllers/UserController.js";
 import AuthController from "./controllers/AuthController.js";
+
+app.use(cors());
+app.use(bodyParser.json());
 
 const portal = express.Router();
 
