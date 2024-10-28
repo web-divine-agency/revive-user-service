@@ -32,17 +32,10 @@ const options = {
   },
 };
 
-const acceptedDomains = [
-  "user-service.skhillz.com"
-]
-
 const corsConfig = {
+  origin: ["staging-portal.skhillz.com"],
   optionsSuccessStatus: 200,
-  origin: (origin, callback) => {
-    const isOriginWhitelisted = origin && acceptedDomains.includes(origin);
-    callback(null, isOriginWhitelisted);
-  }
-}
+};
 
 app.use(cors(corsConfig));
 app.options("*", cors(corsConfig));
