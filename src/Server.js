@@ -11,6 +11,8 @@ import Logger from "./util/logger.js";
 const env = process.env.APP_ENV;
 const appName = process.env.APP_NAME;
 
+const app = express();
+
 const path = {
   cert: env === "uat" ? readFileSync(process.env.CERT_PATH) : "",
   key: env === "uat" ? readFileSync(process.env.KEY_PATH) : "",
@@ -30,8 +32,6 @@ const options = {
   },
 };
 
-const app = express();
-
 const acceptedDomains = [
   "user-service.skhillz.com"
 ]
@@ -45,6 +45,8 @@ const corsConfig = {
 }
 
 app.use(cors(corsConfig));
+app.options("*", cors(corsConfig));
+
 app.use(bodyParser.json());
 
 const server = {
