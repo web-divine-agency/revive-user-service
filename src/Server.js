@@ -32,8 +32,14 @@ const options = {
   },
 };
 
+const acceptedDomains = ["staging-portal.skhillz.com"];
+
 const corsConfig = {
-  origin: ["staging-portal.skhillz.com"],
+  origin: (origin, callback) => {
+    if (acceptedDomains.includes(origin)) {
+      callback(null, origin);
+    }
+  },
   optionsSuccessStatus: 200,
 };
 
