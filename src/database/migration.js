@@ -10,12 +10,11 @@ var mysqlClient = mysql.createConnection({
 var exec = process.env.npm_config_exec;
 
 var enums = {
-  create_classes_table: 0,
-  add_on_going_col: 1,
+  create_users_table: 0,
 };
 
 var statements = [
-  // create users table
+  // create_users_table
   `CREATE TABLE users (${[
     "id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY",
     "type VARCHAR(255) NOT NULL",
@@ -49,4 +48,3 @@ if (exec) {
     });
   });
 }
-
