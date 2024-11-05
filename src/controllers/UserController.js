@@ -10,12 +10,12 @@ export default {
    * @param {*} res
    */
   count: async (req, res) => {
-    let query = `SELECT * FROM users WHERE type = "${req.query.type}" AND deleted_at IS NULL`;
+    let query = `SELECT COUNT(id) as 'rows' FROM users WHERE type = "${req.query.type}" AND deleted_at IS NULL`;
 
     MysqlService.select(query)
       .then((response) => {
         Logger.out([`${req.method} ${req.originalUrl} ${res.statusCode}`]);
-        return res.json(response.length);
+        return res.json(response[0]);
       })
       .catch((error) => {
         Logger.error([JSON.stringify(error)]);
