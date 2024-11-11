@@ -70,14 +70,14 @@ export default {
 
   /**
    * Paginate set of data from a table
-   * @param {*} query
-   * @param {*} paginateQuery
-   * @param {*} show
-   * @param {*} page
-   * @returns
+   * @param {*} query 
+   * @param {*} count_id 
+   * @param {*} show 
+   * @param {*} page 
+   * @returns 
    */
-  paginate: async (query, paginateQuery, show, page) => {
-    let list = await generatePagination(paginateQuery, show);
+  paginate: async (query, count_id, show, page) => {
+    let list = await generatePagination(query, count_id, show);
 
     return new Promise((resolve, reject) => {
       if (page - 1 < 0) {
@@ -110,11 +110,16 @@ export default {
 
 /**
  * Generate pagination list helper function
- * @param {*} paginateQuery
- * @param {*} show
- * @returns
+ * @param {*} query 
+ * @param {*} count_id 
+ * @param {*} show 
+ * @returns 
  */
-function generatePagination(paginateQuery, show) {
+function generatePagination(query, count_id, show) {
+  const regex = /SELECT\s*[\s\S]*?\s+FROM/i;
+
+  let paginateQuery = query.replace(regex, `SELECT COUNT(${count_id}) AS 'rows' FROM`);
+
   return new Promise((resolve, reject) => {
     mysqlClient.query(paginateQuery, (e, result) => {
       if (e) {

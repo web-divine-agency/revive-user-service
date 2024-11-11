@@ -42,9 +42,8 @@ export default {
     }
 
     let query = `SELECT * FROM users WHERE type = "${req.query.type}" AND deleted_at IS NULL`;
-    let paginateQuery = `SELECT COUNT(id) as 'rows' FROM users WHERE type = "${req.query.type}" AND deleted_at IS NULL`;
 
-    MysqlService.paginate(query, paginateQuery, req.query.show, req.query.page)
+    MysqlService.paginate(query, "users.id", req.query.show, req.query.page)
       .then((response) => {
         Logger.out([`${req.method} ${req.originalUrl} ${res.statusCode}`]);
         return res.json(response);
