@@ -4,23 +4,31 @@ import mysqlClient from "../config/mysql.js";
 
 export default {
   /**
-   * Select record(s) on selected table
+   * Select resource(s)
    * @param {*} query
    * @returns
    */
   select: (query) => {
     return new Promise((resolve, reject) => {
-      mysqlClient.query(query, (e, result) => {
-        if (e) {
+      mysqlClient.getConnection((err, con) => {
+        if (err) {
           return reject(e);
         }
-        return resolve(result);
+
+        con.query(query, (e, result) => {
+          con.release();
+
+          if (e) {
+            return reject(e);
+          }
+          return resolve(result);
+        });
       });
     });
   },
 
   /**
-   * Create a record on selected table
+   * Create resource
    * @param {*} table
    * @param {*} data
    * @returns
@@ -33,19 +41,33 @@ export default {
     data.updated_at_order = parseInt(date.format("YYYYMMDDHHmmss"));
 
     return new Promise((resolve, reject) => {
-      mysqlClient.query(
-        `INSERT INTO ${table} (${Object.keys(data)}) VALUES ?`,
-        [[Object.values(data)]],
-        (e, result) => {
-          if (e) {
-            return reject(e);
-          }
-          return resolve(result);
+      mysqlClient.getConnection((err, con) => {
+        if (err) {
+          return reject(e);
         }
-      );
+
+        con.query(
+          `INSERT INTO ${table} (${Object.keys(data)}) VALUES ?`,
+          [[Object.values(data)]],
+          (e, result) => {
+            con.release();
+
+            if (e) {
+              return reject(e);
+            }
+            return resolve(result);
+          }
+        );
+      });
     });
   },
 
+  /**
+   * Delete resource
+   * @param {*} table 
+   * @param {*} id 
+   * @returns 
+   */
   delete: (table, id) => {
     let date = moment();
 
@@ -59,22 +81,30 @@ export default {
     let query = `UPDATE ${table} SET ? WHERE id=${id}`;
 
     return new Promise((resolve, reject) => {
-      mysqlClient.query(query, [data], (e, result) => {
-        if (e) {
+      mysqlClient.getConnection((err, con) => {
+        if (err) {
           return reject(e);
         }
-        return resolve(result);
+
+        con.query(query, [data], (e, result) => {
+          con.release();
+
+          if (e) {
+            return reject(e);
+          }
+          return resolve(result);
+        });
       });
     });
   },
 
   /**
-   * Paginate set of data from a table
-   * @param {*} query 
-   * @param {*} count_id 
-   * @param {*} show 
-   * @param {*} page 
-   * @returns 
+   * Paginate resource
+   * @param {*} query
+   * @param {*} count_id
+   * @param {*} show
+   * @param {*} page
+   * @returns
    */
   paginate: async (query, count_id, show, page) => {
     let list = await generatePagination(query, count_id, show);
@@ -90,18 +120,26 @@ export default {
 
       let offset = list[page - 1][0];
 
-      mysqlClient.query(`${query} LIMIT ${show} OFFSET ${offset}`, (e, result) => {
-        if (e) {
+      mysqlClient.getConnection((err, con) => {
+        if (err) {
           return reject(e);
         }
-        return resolve({
-          first_page: 1,
-          last_page: list.length,
-          current_page: page * 1,
-          next_page: page * 1 >= list.length ? null : page * 1 + 1,
-          prev_page: page * 1 <= 1 ? null : page * 1 - 1,
-          pages: list.length,
-          list: result,
+
+        con.query(`${query} LIMIT ${show} OFFSET ${offset}`, (e, result) => {
+          con.release();
+
+          if (e) {
+            return reject(e);
+          }
+          return resolve({
+            first_page: 1,
+            last_page: list.length,
+            current_page: page * 1,
+            next_page: page * 1 >= list.length ? null : page * 1 + 1,
+            prev_page: page * 1 <= 1 ? null : page * 1 - 1,
+            pages: list.length,
+            list: result,
+          });
         });
       });
     });
@@ -109,11 +147,11 @@ export default {
 };
 
 /**
- * Generate pagination list helper function
- * @param {*} query 
- * @param {*} count_id 
- * @param {*} show 
- * @returns 
+ * Generate pagination without getting all data from db
+ * @param {*} query
+ * @param {*} count_id
+ * @param {*} show
+ * @returns
  */
 function generatePagination(query, count_id, show) {
   const regex = /SELECT\s*[\s\S]*?\s+FROM/i;
@@ -121,18 +159,26 @@ function generatePagination(query, count_id, show) {
   let paginateQuery = query.replace(regex, `SELECT COUNT(${count_id}) AS 'rows' FROM`);
 
   return new Promise((resolve, reject) => {
-    mysqlClient.query(paginateQuery, (e, result) => {
-      if (e) {
+    mysqlClient.getConnection((err, con) => {
+      if (err) {
         return reject(e);
       }
 
-      let array_rows = [...Array(result[0].rows).keys()];
+      con.query(paginateQuery, (e, result) => {
+        con.release();
 
-      let paginated = Array.from({ length: Math.ceil(array_rows.length / show) }, (item, i) =>
-        array_rows.slice(i * show, i * show + show)
-      );
+        if (e) {
+          return reject(e);
+        }
 
-      return resolve(paginated);
+        let array_rows = [...Array(result[0].rows).keys()];
+
+        let paginated = Array.from({ length: Math.ceil(array_rows.length / show) }, (item, i) =>
+          array_rows.slice(i * show, i * show + show)
+        );
+
+        return resolve(paginated);
+      });
     });
   });
 }

@@ -1,10 +1,13 @@
 import mysql from "mysql";
 
-var mysqlClient = mysql.createConnection({
+var mysqlClient = mysql.createPool({
   host: "localhost",
   user: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
+  connectionLimit: 24,
+  waitForConnections: true,
+  queueLimit: 0,
 });
 
 var exec = process.env.npm_config_exec;
@@ -36,15 +39,31 @@ var statements = [
 ];
 
 if (exec) {
-  mysqlClient.query(statements[enums[exec]], function (err) {
-    if (err) throw err;
-    console.log("Success");
+  mysqlClient.getConnection((err, con) => {
+    if (err) {
+      return reject(e);
+    }
+
+    con.query(statements[enums[exec]], function (e) {
+      con.release();
+
+      if (e) throw err;
+      console.log("Success");
+    });
   });
 } else {
   statements.forEach((statement) => {
-    mysqlClient.query(statement, function (err) {
-      if (err) throw err;
-      console.log("Success");
+    mysqlClient.getConnection((err, con) => {
+      if (err) {
+        return reject(e);
+      }
+
+      con.query(statement, function (e) {
+        con.release();
+
+        if (e) throw err;
+        console.log("Success");
+      });
     });
   });
 }
