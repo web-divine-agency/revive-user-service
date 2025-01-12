@@ -1,6 +1,6 @@
 FROM node:20.18.0-alpine
 
-WORKDIR /var/www/skhillz-user-service
+WORKDIR /var/www/revive-user-service
 
 COPY package.json /
 

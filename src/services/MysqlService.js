@@ -12,7 +12,7 @@ export default {
     return new Promise((resolve, reject) => {
       mysqlClient.getConnection((err, con) => {
         if (err) {
-          return reject(e);
+          return reject(err);
         }
 
         con.query(query, (e, result) => {
@@ -43,7 +43,7 @@ export default {
     return new Promise((resolve, reject) => {
       mysqlClient.getConnection((err, con) => {
         if (err) {
-          return reject(e);
+          return reject(err);
         }
 
         con.query(
@@ -64,9 +64,9 @@ export default {
 
   /**
    * Delete resource
-   * @param {*} table 
-   * @param {*} id 
-   * @returns 
+   * @param {*} table
+   * @param {*} id
+   * @returns
    */
   delete: (table, id) => {
     let date = moment();
@@ -83,7 +83,7 @@ export default {
     return new Promise((resolve, reject) => {
       mysqlClient.getConnection((err, con) => {
         if (err) {
-          return reject(e);
+          return reject(err);
         }
 
         con.query(query, [data], (e, result) => {
@@ -122,7 +122,7 @@ export default {
 
       mysqlClient.getConnection((err, con) => {
         if (err) {
-          return reject(e);
+          return reject(err);
         }
 
         con.query(`${query} LIMIT ${show} OFFSET ${offset}`, (e, result) => {
@@ -161,7 +161,7 @@ function generatePagination(query, count_id, show) {
   return new Promise((resolve, reject) => {
     mysqlClient.getConnection((err, con) => {
       if (err) {
-        return reject(e);
+        return reject(err);
       }
 
       con.query(paginateQuery, (e, result) => {

@@ -10,6 +10,14 @@ import AuthController from "./controllers/AuthController.js";
 
 if (process.env.APP_ENV === "dev") {
   app.use(cors());
+} else {
+  app.options("*", cors());
+  app.use(
+    cors({
+      /*origin: 'https://revivepharmacyportal.com.au/',*/
+      credentials: true,
+    })
+  );
 }
 
 app.use(bodyParser.json());
@@ -22,8 +30,6 @@ const portal = express.Router();
 app.use("/portal", portal);
 portal.get("/users", UserController.list);
 portal.post("/users", UserController.create);
-
-portal.get("/users-count", UserController.count);
 
 /**
  * Base routes

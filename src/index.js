@@ -6,7 +6,7 @@ import "./AppRouter.js";
 
 import logger from "./util/logger.js";
 
-moment.tz.setDefault("Asia/Singapore");
+moment.tz.setDefault("Australia/Sydney");
 
 // Run logs sweeper
 logger.sweeper();

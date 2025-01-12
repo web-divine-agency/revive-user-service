@@ -24,6 +24,7 @@ var statements = [
     "first_name VARCHAR(255) NOT NULL",
     "middle_name VARCHAR(255) NULL",
     "last_name VARCHAR(255) NOT NULL",
+    "gender VARCHAR(255) NULL",
     "email VARCHAR(255) NOT NULL UNIQUE",
     "mobile VARCHAR(255) NULL",
     "password VARCHAR(255) NOT NULL",
@@ -40,28 +41,24 @@ var statements = [
 
 if (exec) {
   mysqlClient.getConnection((err, con) => {
-    if (err) {
-      return reject(e);
-    }
+    if (err) throw err;
 
     con.query(statements[enums[exec]], function (e) {
       con.release();
 
-      if (e) throw err;
+      if (e) throw e;
       console.log("Success");
     });
   });
 } else {
   statements.forEach((statement) => {
     mysqlClient.getConnection((err, con) => {
-      if (err) {
-        return reject(e);
-      }
+      if (err) throw err;
 
       con.query(statement, function (e) {
         con.release();
 
-        if (e) throw err;
+        if (e) throw e;
         console.log("Success");
       });
     });
