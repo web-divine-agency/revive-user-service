@@ -7,29 +7,31 @@ import { app } from "./Server.js";
 import Controller from "./controllers/Controller.js";
 import UserController from "./controllers/UserController.js";
 import AuthController from "./controllers/AuthController.js";
+import RoleController from "./controllers/RoleController.js";
 
 if (process.env.APP_ENV === "dev") {
   app.use(cors());
-} else {
-  app.options("*", cors());
-  app.use(
-    cors({
-      /*origin: 'https://revivepharmacyportal.com.au/',*/
-      credentials: true,
-    })
-  );
 }
 
 app.use(bodyParser.json());
 
 const portal = express.Router();
+const admin = express.Router();
 
 /**
  * Portal routes
  */
 app.use("/portal", portal);
 portal.get("/users", UserController.list);
-portal.post("/users", UserController.create);
+
+
+/**
+ * Admin routes
+ */
+app.use("/admin", admin);
+admin.post("/users", UserController.create);
+
+admin.post("/roles", RoleController.create);
 
 /**
  * Base routes
