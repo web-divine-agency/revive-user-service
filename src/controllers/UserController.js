@@ -76,6 +76,7 @@ export default {
 
     let role;
     let user;
+    let ticket_types;
 
     // Get the role
     try {
@@ -166,7 +167,31 @@ export default {
 
     // Enable all ticket types for admin role
     if (role[0].name === "Admin") {
+      ticket_types = await MysqlService.select(
+        `SELECT id,name FROM ticket_types WHERE deleted_at IS NULL`
+      );
+
+      ticket_types.map(async (item) => {
+        try {
+          await MysqlService.create("user_ticket_types", {
+            user_id: user.insertId,
+            ticket_type_id: item.id,
+          });
+        } catch (error) {
+          res.status(500);
+
+          let message = {
+            endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
+            error: error,
+          };
+
+          Logger.error([JSON.stringify(message)]);
+          return res.json(message);
+        }
+      });
     }
+
+    // To Do: Send an email for the credentials
 
     res.status(200);
 
@@ -175,7 +200,7 @@ export default {
       user: user.insertId,
     };
 
-    Logger.error([JSON.stringify(message)]);
+    Logger.out([JSON.stringify(message)]);
     return res.json(message);
   },
 };
