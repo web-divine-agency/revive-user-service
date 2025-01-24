@@ -8,55 +8,6 @@ import MysqlService from "../services/MysqlService.js";
 
 export default {
   /**
-   * Register user
-   * @param {*} req
-   * @param {*} res
-   * @returns
-   */
-  register: (req, res) => {
-    let validation = Validator.check([
-      Validator.required(req.body, "type"),
-      Validator.required(req.body, "first_name"),
-      Validator.required(req.body, "last_name"),
-      Validator.required(req.body, "email"),
-      Validator.required(req.body, "password"),
-    ]);
-
-    if (!validation.pass) {
-      Logger.error([JSON.stringify(validation)]);
-      return res.status(422).json(validation.result);
-    }
-
-    MysqlService.create("users", {
-      type: req.body.type,
-      first_name: req.body.first_name,
-      middle_name: req.body.middle_name,
-      last_name: req.body.last_name,
-      email: req.body.email,
-      mobile: req.body.mobile,
-      password: createHmac("sha256", process.env.HASH_SECRET)
-        .update(req.body.password)
-        .digest("hex"),
-    })
-      .then(async (response) => {
-        let user = await MysqlService.select(`SELECT * FROM users WHERE id = ${response.insertId}`);
-
-        delete user[0].password;
-
-        let token = jwt.sign({ ...user[0] }, process.env.JWT_SECRET, {
-          expiresIn: "1h",
-        });
-
-        Logger.out([`${req.method} ${req.originalUrl} ${res.statusCode}`]);
-        return res.json({ ...user[0], token: token });
-      })
-      .catch((error) => {
-        Logger.error([JSON.stringify(error)]);
-        return res.status(500).json(error);
-      });
-  },
-
-  /**
    * User login
    * @param {*} req
    * @param {*} res
@@ -64,45 +15,102 @@ export default {
    */
   login: async (req, res) => {
     let validation = Validator.check([
-      Validator.required(req.body, "email"),
+      Validator.required(req.body, "username"),
       Validator.required(req.body, "password"),
     ]);
 
     if (!validation.pass) {
-      Logger.error([JSON.stringify(validation)]);
-      return res.status(422).json(validation.result);
+      res.status(422);
+
+      let message = {
+        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
+        error: validation.result,
+      };
+
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
     }
 
-    let user = await MysqlService.select(`SELECT * FROM users WHERE email = "${req.body.email}"`);
+    const { username, password } = req.body;
+
+    let userQuery = `
+      SELECT
+        users.id,
+        users.first_name,
+        users.last_name,
+        users.username,
+        users.gender,
+        users.email,
+        users.mobile,
+        users.password,
+        users.verified_at,
+        roles.id as role_id,
+        roles.name as role_name,
+        roles.description
+      FROM users
+      INNER JOIN user_roles ON users.id = user_roles.user_id
+      INNER JOIN roles ON user_roles.role_id = roles.id
+      WHERE users.username = "${username}"
+      AND users.deleted_at IS NULL
+    `;
+
+    let user = await MysqlService.select(userQuery);
 
     if (!user.length) {
-      Logger.error([JSON.stringify({ msg: "User not found" })]);
-      return res.status(404).json({ msg: "User not found" });
+      res.status(404);
+
+      let message = {
+        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
+        error: "User not found",
+      };
+
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
     }
 
     let userPassword = user[0].password;
-    let reqPassword = createHmac("sha256", process.env.HASH_SECRET)
-      .update(req.body.password)
-      .digest("hex");
+    let reqPassword = createHmac("sha256", process.env.HASH_SECRET).update(password).digest("hex");
 
     // Check length before using timingSageEqual
     if (userPassword.length !== reqPassword.length) {
-      Logger.error([JSON.stringify({ msg: "Invalid credentials" })]);
-      return res.status(401).json({ msg: "Invalid credentials" });
+      res.status(401);
+
+      let message = {
+        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
+        error: "Invalid credentials",
+      };
+
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
     }
 
     if (timingSafeEqual(Buffer.from(userPassword), Buffer.from(reqPassword))) {
+      // Remove the password upon jwt sign
       delete user[0].password;
 
       let token = jwt.sign({ ...user[0] }, process.env.JWT_SECRET, {
         expiresIn: "1h",
       });
 
-      Logger.out([`${req.method} ${req.originalUrl} ${res.statusCode}`]);
-      return res.json({ ...user[0], token: token });
+      res.status(200);
+
+      let message = {
+        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
+        user: { ...user[0], token: token },
+      };
+
+      Logger.out([JSON.stringify(message)]);
+      return res.json(message);
     } else {
-      Logger.error([JSON.stringify({ msg: "Invalid credentials" })]);
-      return res.status(401).json({ msg: "Invalid credentials" });
+      res.status(401);
+
+      let message = {
+        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
+        error: "Invalid credentials",
+      };
+
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
     }
   },
 
@@ -116,17 +124,39 @@ export default {
     let token = req.header("Authorization");
 
     if (!token) {
-      Logger.error([JSON.stringify({ auth: false })]);
-      return res.status(401).send(false);
+      res.status(404);
+
+      let message = {
+        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
+        error: "Token not found",
+      };
+
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
     }
 
     try {
       jwt.verify(token, process.env.JWT_SECRET);
-      Logger.out([JSON.stringify({ auth: true })]);
-      return res.send(true);
+
+      res.status(200);
+
+      let message = {
+        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
+        auth: true,
+      };
+
+      Logger.out([JSON.stringify(message)]);
+      return res.json(message);
     } catch {
-      Logger.error([JSON.stringify({ auth: false })]);
-      return res.status(401).send(false);
+      res.status(401);
+
+      let message = {
+        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
+        auth: false,
+      };
+
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
     }
   },
 };

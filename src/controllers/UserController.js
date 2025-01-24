@@ -14,26 +14,70 @@ export default {
    */
   list: (req, res) => {
     let validation = Validator.check([
-      Validator.required(req.query, "type"),
       Validator.required(req.query, "show"),
       Validator.required(req.query, "page"),
     ]);
 
     if (!validation.pass) {
-      Logger.error([JSON.stringify(validation)]);
-      return res.status(422).json(validation.result);
+      res.status(422);
+
+      let message = {
+        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
+        error: validation.result,
+      };
+
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
     }
 
-    let query = `SELECT * FROM users WHERE type = "${req.query.type}" AND deleted_at IS NULL`;
+    const { show, page, role } = req.query;
 
-    MysqlService.paginate(query, "users.id", req.query.show, req.query.page)
+    let query = `
+      SELECT
+        users.id,
+        users.first_name,
+        users.last_name,
+        users.username,
+        users.gender,
+        users.email,
+        users.mobile,
+        users.verified_at,
+        users.created_at,
+        users.created_at_order,
+        users.updated_at,
+        users.updated_at_order,
+        roles.id as role_id,
+        roles.name as role_name,
+        roles.description as role_description
+      FROM users
+      INNER JOIN user_roles ON users.id = user_roles.user_id
+      INNER JOIN roles ON user_roles.role_id = roles.id
+      WHERE roles.name LIKE "%${role}%" 
+      AND users.deleted_at IS NULL
+    `;
+
+    MysqlService.paginate(query, "users.id", show, page)
       .then((response) => {
-        Logger.out([`${req.method} ${req.originalUrl} ${res.statusCode}`]);
-        return res.json(response);
+        res.status(200);
+
+        let message = {
+          endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
+          users: response,
+        };
+
+        Logger.out([JSON.stringify(message)]);
+        return res.json(message);
       })
       .catch((error) => {
-        Logger.error([JSON.stringify(error)]);
-        return res.status(500).json(error);
+        res.status(500);
+
+        let message = {
+          endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
+          error: error,
+        };
+
+        Logger.error([JSON.stringify(message)]);
+        return res.json(message);
       });
   },
 
