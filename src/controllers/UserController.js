@@ -30,30 +30,39 @@ export default {
       return res.json(message);
     }
 
-    const { show, page, role } = req.query;
+    const { show, page } = req.query;
+
+    let branch_id = req.query.branch_id ?? null;
+    let role = req.query.role ?? "";
 
     let query = `
       SELECT
         users.id,
         users.first_name,
         users.last_name,
-        users.username,
         users.gender,
+        users.username,
         users.email,
         users.mobile,
+        ANY_VALUE(roles.id) AS role_id,
+        ANY_VALUE(roles.name) AS role_name,
+        JSON_ARRAYAGG(
+            JSON_OBJECT('name', branches.name, 'id', branches.id)
+        ) AS all_branches,
         users.verified_at,
+        users.verified_at_order,
         users.created_at,
         users.created_at_order,
         users.updated_at,
-        users.updated_at_order,
-        roles.id as role_id,
-        roles.name as role_name,
-        roles.description as role_description
+        users.updated_at_order
       FROM users
+      INNER JOIN user_branches ON users.id = user_branches.user_id
+      INNER JOIN branches ON user_branches.branch_id = branches.id
       INNER JOIN user_roles ON users.id = user_roles.user_id
       INNER JOIN roles ON user_roles.role_id = roles.id
-      WHERE roles.name LIKE "%${role}%" 
-      AND users.deleted_at IS NULL
+      WHERE branches.id = IFNULL(${branch_id}, branches.id)
+      AND roles.name LIKE "%${role}%" 
+      GROUP BY users.id
     `;
 
     MysqlService.paginate(query, "users.id", show, page)
@@ -63,79 +72,6 @@ export default {
         let message = {
           endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
           users: response,
-        };
-
-        Logger.out([JSON.stringify(message)]);
-        return res.json(message);
-      })
-      .catch((error) => {
-        res.status(500);
-
-        let message = {
-          endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-          error: error,
-        };
-
-        Logger.error([JSON.stringify(message)]);
-        return res.json(message);
-      });
-  },
-
-  listByBranch: (req, res) => {
-    let validation = Validator.check([
-      Validator.required(req.query, "branch_id"),
-      Validator.required(req.query, "show"),
-      Validator.required(req.query, "page"),
-    ]);
-
-    if (!validation.pass) {
-      res.status(422);
-
-      let message = {
-        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-        error: validation.result,
-      };
-
-      Logger.error([JSON.stringify(message)]);
-      return res.json(message);
-    }
-
-    const { show, page, role } = req.query;
-
-    let query = `
-      SELECT
-        users.id,
-        users.first_name,
-        users.last_name,
-        users.username,
-        users.gender,
-        users.email,
-        users.mobile,
-        users.verified_at,
-        users.created_at,
-        users.created_at_order,
-        users.updated_at,
-        users.updated_at_order,
-        roles.id as role_id,
-        roles.name as role_name,
-        roles.description as role_description,
-        branch.name as branch_name
-      FROM users
-      INNER JOIN user_roles ON users.id = user_roles.user_id
-      INNER JOIN roles ON user_roles.role_id = roles.id
-      INNER JOIN user_branches ON users.id = user_branches.user_id
-      INNER JOIN branches ON user_branches.branch_id = branches.id
-      WHERE roles.name LIKE "%${role}%"
-      AND users.deleted_at IS NULL
-    `;
-
-    MysqlService.paginate(query, "users.id", show, page)
-      .then((response) => {
-        res.status(200);
-
-        let message = {
-          endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-          branches: response,
         };
 
         Logger.out([JSON.stringify(message)]);

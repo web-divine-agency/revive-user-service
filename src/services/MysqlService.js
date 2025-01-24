@@ -171,7 +171,7 @@ function generatePagination(query, count_id, show) {
           return reject(e);
         }
 
-        let array_rows = [...Array(result[0].rows).keys()];
+        let array_rows = [...Array(result[0]?.rows).keys()];
 
         let paginated = Array.from({ length: Math.ceil(array_rows.length / show) }, (item, i) =>
           array_rows.slice(i * show, i * show + show)
