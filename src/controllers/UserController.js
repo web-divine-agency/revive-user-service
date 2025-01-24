@@ -81,6 +81,79 @@ export default {
       });
   },
 
+  listByBranch: (req, res) => {
+    let validation = Validator.check([
+      Validator.required(req.query, "branch_id"),
+      Validator.required(req.query, "show"),
+      Validator.required(req.query, "page"),
+    ]);
+
+    if (!validation.pass) {
+      res.status(422);
+
+      let message = {
+        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
+        error: validation.result,
+      };
+
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
+    }
+
+    const { show, page, role } = req.query;
+
+    let query = `
+      SELECT
+        users.id,
+        users.first_name,
+        users.last_name,
+        users.username,
+        users.gender,
+        users.email,
+        users.mobile,
+        users.verified_at,
+        users.created_at,
+        users.created_at_order,
+        users.updated_at,
+        users.updated_at_order,
+        roles.id as role_id,
+        roles.name as role_name,
+        roles.description as role_description,
+        branch.name as branch_name
+      FROM users
+      INNER JOIN user_roles ON users.id = user_roles.user_id
+      INNER JOIN roles ON user_roles.role_id = roles.id
+      INNER JOIN user_branches ON users.id = user_branches.user_id
+      INNER JOIN branches ON user_branches.branch_id = branches.id
+      WHERE roles.name LIKE "%${role}%"
+      AND users.deleted_at IS NULL
+    `;
+
+    MysqlService.paginate(query, "users.id", show, page)
+      .then((response) => {
+        res.status(200);
+
+        let message = {
+          endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
+          branches: response,
+        };
+
+        Logger.out([JSON.stringify(message)]);
+        return res.json(message);
+      })
+      .catch((error) => {
+        res.status(500);
+
+        let message = {
+          endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
+          error: error,
+        };
+
+        Logger.error([JSON.stringify(message)]);
+        return res.json(message);
+      });
+  },
+
   /**
    * Create a user
    * @param {*} req

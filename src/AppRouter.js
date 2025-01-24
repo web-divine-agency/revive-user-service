@@ -33,9 +33,9 @@ app.use("/admin", admin);
 admin.use(authAdmin);
 admin.get("/res/users", UserController.list);
 admin.post("/res/users", UserController.create);
+admin.get("/fn/users-by-branch", UserController.listByBranch);
 
 admin.post("/res/roles", RoleController.create);
-
 admin.get("/fn/roles-all", RoleController.all);
 
 /**
