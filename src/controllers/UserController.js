@@ -34,6 +34,7 @@ export default {
 
     let branch_id = req.query.branch_id ?? null;
     let role = req.query.role ?? "";
+    let find = req.query.find ?? "";
 
     let query = `
       SELECT
@@ -62,6 +63,12 @@ export default {
       INNER JOIN roles ON user_roles.role_id = roles.id
       WHERE branches.id = IFNULL(${branch_id}, branches.id)
       AND roles.name LIKE "%${role}%" 
+      AND 
+        (
+          users.first_name LIKE "%${find}%" OR
+          users.last_name LIKE "%${find}%" OR
+          users.email LIKE "%${find}%"
+        )
       GROUP BY users.id
     `;
 
