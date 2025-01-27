@@ -6,30 +6,53 @@ import MysqlService from "../services/MysqlService.js";
 export default {
   /**
    * List all roles without pagination
-   * @param {*} req 
-   * @param {*} res 
+   * @param {*} req
+   * @param {*} res
    */
   all: (req, res) => {
     MysqlService.select(`SELECT * FROM roles WHERE deleted_at IS NULL`)
       .then((response) => {
-        res.status(200);
-
-        let message = {
-          endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-          roles: response,
-        };
-
+        let message = Logger.message(req, res, 200, "roles", response);
         Logger.out([JSON.stringify(message)]);
         return res.json(message);
       })
       .catch((error) => {
-        res.status(500);
+        let message = Logger.message(req, res, 200, "error", error);
+        Logger.error([JSON.stringify(message)]);
+        return res.json(message);
+      });
+  },
 
-        let message = {
-          endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-          error: error,
-        };
+  /**
+   * List roles
+   * @param {*} req 
+   * @param {*} res 
+   * @returns 
+   */
+  list: (req, res) => {
+    let validation = Validator.check([
+      Validator.required(req.query, "show"),
+      Validator.required(req.query, "page"),
+    ]);
 
+    if (!validation.pass) {
+      let message = Logger.message(req, res, 422, "error", validation.result);
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
+    }
+
+    const { show, page } = req.query;
+
+    let query = `SELECT * FROM roles WHERE deleted_at IS NULL`;
+
+    MysqlService.paginate(query, "id", show, page)
+      .then((response) => {
+        let message = Logger.message(req, res, 200, "roles", response);
+        Logger.out([JSON.stringify(message)]);
+        return res.json(message);
+      })
+      .catch((error) => {
+        let message = Logger.message(req, res, 200, "error", error);
         Logger.error([JSON.stringify(message)]);
         return res.json(message);
       });
@@ -45,13 +68,7 @@ export default {
     let validation = Validator.check([Validator.required(req.body, "role_name")]);
 
     if (!validation.pass) {
-      res.status(422);
-
-      let message = {
-        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-        error: validation.result,
-      };
-
+      let message = Logger.message(req, res, 422, "error", validation.result);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
@@ -60,24 +77,12 @@ export default {
 
     MysqlService.create("roles", { name: role_name })
       .then((response) => {
-        res.status(200);
-
-        let message = {
-          endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-          id: response.insertId,
-        };
-
+        let message = Logger.message(req, res, 200, "role", response.insertId);
         Logger.error([JSON.stringify(message)]);
         return res.json(message);
       })
       .catch((error) => {
-        res.status(500);
-
-        let message = {
-          endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-          error: error,
-        };
-
+        let message = Logger.message(req, res, 500, "error", error);
         Logger.error([JSON.stringify(message)]);
         return res.json(message);
       });

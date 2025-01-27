@@ -19,13 +19,7 @@ export default {
     ]);
 
     if (!validation.pass) {
-      res.status(422);
-
-      let message = {
-        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-        error: validation.result,
-      };
-
+      let message = Logger.message(req, res, 422, "error", validation.result);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
@@ -74,24 +68,12 @@ export default {
 
     MysqlService.paginate(query, "users.id", show, page)
       .then((response) => {
-        res.status(200);
-
-        let message = {
-          endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-          users: response,
-        };
-
+        let message = Logger.message(req, res, 200, "users", response);
         Logger.out([JSON.stringify(message)]);
         return res.json(message);
       })
       .catch((error) => {
-        res.status(500);
-
-        let message = {
-          endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-          error: error,
-        };
-
+        let message = Logger.message(req, res, 500, "error", error);
         Logger.error([JSON.stringify(message)]);
         return res.json(message);
       });
@@ -115,13 +97,7 @@ export default {
     ]);
 
     if (!validation.pass) {
-      res.status(422);
-
-      let message = {
-        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-        error: validation.result,
-      };
-
+      let message = Logger.message(req, res, 422, "error", validation.result);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
@@ -142,25 +118,13 @@ export default {
     try {
       role = await MysqlService.select(`SELECT id,name FROM roles WHERE name = "${role_name}"`);
     } catch (error) {
-      res.status(500);
-
-      let message = {
-        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-        error: error,
-      };
-
+      let message = Logger.message(req, res, 500, "error", error);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
 
     if (!role || !role.length) {
-      res.status(404);
-
-      let message = {
-        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-        msg: "Role not found",
-      };
-
+      let message = Logger.message(req, res, 404, "error", "Role not found");
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
@@ -176,13 +140,7 @@ export default {
         password: createHmac("sha256", process.env.HASH_SECRET).update(password).digest("hex"),
       });
     } catch (error) {
-      res.status(500);
-
-      let message = {
-        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-        error: error,
-      };
-
+      let message = Logger.message(req, res, 500, "error", error);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
@@ -194,13 +152,7 @@ export default {
         role_id: role[0].id,
       });
     } catch (error) {
-      res.status(500);
-
-      let message = {
-        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-        error: error,
-      };
-
+      let message = Logger.message(req, res, 500, "error", error);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
@@ -213,13 +165,7 @@ export default {
           branch_id: item,
         });
       } catch (error) {
-        res.status(500);
-
-        let message = {
-          endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-          error: error,
-        };
-
+        let message = Logger.message(req, res, 500, "error", error);
         Logger.error([JSON.stringify(message)]);
         return res.json(message);
       }
@@ -238,13 +184,7 @@ export default {
             ticket_type_id: item.id,
           });
         } catch (error) {
-          res.status(500);
-
-          let message = {
-            endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-            error: error,
-          };
-
+          let message = Logger.message(req, res, 500, "error", error);
           Logger.error([JSON.stringify(message)]);
           return res.json(message);
         }
@@ -253,13 +193,7 @@ export default {
 
     // To Do: Send an email for the credentials
 
-    res.status(200);
-
-    let message = {
-      endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-      user: user.insertId,
-    };
-
+    let message = Logger.message(req, res, 200, "user", user.insertId);
     Logger.out([JSON.stringify(message)]);
     return res.json(message);
   },

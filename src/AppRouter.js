@@ -34,6 +34,7 @@ admin.use(authAdmin);
 admin.get("/res/users", UserController.list);
 admin.post("/res/users", UserController.create);
 
+admin.get("/res/roles", RoleController.list);
 admin.post("/res/roles", RoleController.create);
 admin.get("/fn/roles-all", RoleController.all);
 

@@ -28,6 +28,26 @@ export default {
     }
   },
 
+    /**
+   * Generate response message
+   * @param {*} req
+   * @param {*} res
+   * @param {*} status
+   * @param {*} model
+   * @param {*} data
+   * @returns
+   */
+    message: (req, res, status, model, data) => {
+      res.status(status);
+  
+      let response = {
+        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
+        [model]: data,
+      };
+  
+      return response;
+    },
+
   /**
    * This will maintain log file to less than 1024 KB
    */
