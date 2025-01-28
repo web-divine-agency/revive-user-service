@@ -25,9 +25,9 @@ export default {
 
   /**
    * List roles
-   * @param {*} req 
-   * @param {*} res 
-   * @returns 
+   * @param {*} req
+   * @param {*} res
+   * @returns
    */
   list: (req, res) => {
     let validation = Validator.check([
@@ -43,9 +43,22 @@ export default {
 
     const { show, page } = req.query;
 
-    let query = `SELECT * FROM roles WHERE deleted_at IS NULL`;
+    let query = `
+      SELECT
+        ANY_VALUE(roles.id) AS role_id,
+        roles.name AS role_name,
+        roles.description AS role_description,
+        JSON_ARRAYAGG(
+            JSON_OBJECT('name', permissions.name, 'id', permissions.id, 'description', permissions.description)
+        ) AS all_permissions
+      FROM roles
+      INNER JOIN role_permissions ON roles.id = role_permissions.role_id
+      INNER JOIN permissions ON role_permissions.permission_id = permissions.id
+      WHERE roles.deleted_at IS NULL
+      GROUP BY roles.id
+    `;
 
-    MysqlService.paginate(query, "id", show, page)
+    MysqlService.paginate(query, "roles.id", show, page)
       .then((response) => {
         let message = Logger.message(req, res, 200, "roles", response);
         Logger.out([JSON.stringify(message)]);
@@ -65,7 +78,7 @@ export default {
    * @returns
    */
   create: async (req, res) => {
-    let validation = Validator.check([Validator.required(req.body, "role_name")]);
+    let validation = Validator.check([Validator.required(req.body, "name")]);
 
     if (!validation.pass) {
       let message = Logger.message(req, res, 422, "error", validation.result);
@@ -73,18 +86,40 @@ export default {
       return res.json(message);
     }
 
-    const { role_name } = req.body;
+    const { name, description, permission_ids } = req.body;
 
-    MysqlService.create("roles", { name: role_name })
-      .then((response) => {
-        let message = Logger.message(req, res, 200, "role", response.insertId);
-        Logger.error([JSON.stringify(message)]);
-        return res.json(message);
-      })
-      .catch((error) => {
+    if (!permission_ids || !permission_ids.length) {
+      let message = Logger.message(req, res, 422, "error", { permission_ids: "required" });
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
+    }
+
+    let role;
+
+    try {
+      role = await MysqlService.create("roles", { name: name, description: description });
+    } catch (error) {
+      let message = Logger.message(req, res, 500, "error", error);
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
+    }
+
+    // Create role_permissions
+    permission_ids?.map(async (item) => {
+      try {
+        await MysqlService.create("role_permissions", {
+          role_id: role.insertId,
+          permission_id: item,
+        });
+      } catch (error) {
         let message = Logger.message(req, res, 500, "error", error);
         Logger.error([JSON.stringify(message)]);
         return res.json(message);
-      });
+      }
+    });
+
+    let message = Logger.message(req, res, 200, "role", role.insertId);
+    Logger.error([JSON.stringify(message)]);
+    return res.json(message);
   },
 };
