@@ -10,6 +10,7 @@ import Controller from "./controllers/Controller.js";
 import UserController from "./controllers/UserController.js";
 import AuthController from "./controllers/AuthController.js";
 import RoleController from "./controllers/RoleController.js";
+import PermissionController from "./controllers/PermissionController.js";
 
 if (process.env.APP_ENV === "dev") {
   app.use(cors());
@@ -37,6 +38,8 @@ admin.post("/res/users", UserController.create);
 admin.get("/res/roles", RoleController.list);
 admin.post("/res/roles", RoleController.create);
 admin.get("/fn/roles-all", RoleController.all);
+
+admin.post("/res/permissions", PermissionController.create);
 
 /**
  * Base routes
