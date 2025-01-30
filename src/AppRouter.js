@@ -37,11 +37,16 @@ admin.post("/res/users", UserController.create);
 
 admin.get("/res/roles", RoleController.list);
 admin.post("/res/roles", RoleController.create);
+admin.get("/res/roles/:role_id", RoleController.read);
+admin.put("/res/roles/:role_id", RoleController.update);
+admin.delete("/res/roles/:role_id", RoleController.delete);
+
 admin.get("/fn/roles-all", RoleController.all);
 
-admin.get("/fn/permissions-all", PermissionController.all);
 admin.get("/res/permissions", PermissionController.list);
 admin.post("/res/permissions", PermissionController.create);
+
+admin.get("/fn/permissions-all", PermissionController.all);
 
 /**
  * Base routes
