@@ -42,8 +42,18 @@ export default {
     }
 
     const { show, page } = req.query;
+    let find = req.query.find ?? "";
 
-    let query = `SELECT * FROM permissions WHERE deleted_at IS NULL`;
+    let query = `
+      SELECT
+        *
+      FROM permissions
+      WHERE deleted_at IS NULL
+      AND 
+        (
+          permissions.name LIKE "%${find}%"
+        )
+      `;
 
     MysqlService.paginate(query, "id", show, page)
       .then((response) => {
