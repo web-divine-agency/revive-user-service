@@ -4,6 +4,7 @@ import Logger from "../util/logger.js";
 import Validator from "../util/validator.js";
 
 import MysqlService from "../services/MysqlService.js";
+import LoggerService from "../services/LoggerService.js";
 
 export default {
   /**
@@ -94,6 +95,8 @@ export default {
       Validator.required(req.body, "email"),
       Validator.required(req.body, "password"),
       Validator.required(req.body, "role_name"),
+      Validator.required(req.body, "user_id"),
+      Validator.required(req.body, "token"),
     ]);
 
     if (!validation.pass) {
@@ -102,8 +105,18 @@ export default {
       return res.json(message);
     }
 
-    const { first_name, last_name, gender, username, email, password, branch_ids, role_name } =
-      req.body;
+    const {
+      first_name,
+      last_name,
+      gender,
+      username,
+      email,
+      password,
+      branch_ids,
+      role_name,
+      user_id,
+      token,
+    } = req.body;
 
     if (!branch_ids || !branch_ids.length) {
       Logger.error([JSON.stringify(validation)]);
@@ -192,6 +205,11 @@ export default {
     }
 
     // To Do: Send an email for the credentials
+
+    await LoggerService.create(
+      { user_id: user_id, module: "Users", note: "Created a new user" },
+      token
+    );
 
     let message = Logger.message(req, res, 200, "user", user.insertId);
     Logger.out([JSON.stringify(message)]);

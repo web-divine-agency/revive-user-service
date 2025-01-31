@@ -5,6 +5,7 @@ import Logger from "../util/logger.js";
 import Validator from "../util/validator.js";
 
 import MysqlService from "../services/MysqlService.js";
+import LoggerService from "../services/LoggerService.js";
 
 export default {
   /**
@@ -20,13 +21,7 @@ export default {
     ]);
 
     if (!validation.pass) {
-      res.status(422);
-
-      let message = {
-        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-        error: validation.result,
-      };
-
+      let message = Logger.message(req, res, 422, "error", validation.result);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
@@ -57,13 +52,7 @@ export default {
     let user = await MysqlService.select(userQuery);
 
     if (!user.length) {
-      res.status(404);
-
-      let message = {
-        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-        error: "User not found",
-      };
-
+      let message = Logger.message(req, res, 404, "error", "User not found");
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
@@ -73,13 +62,7 @@ export default {
 
     // Check length before using timingSageEqual
     if (userPassword.length !== reqPassword.length) {
-      res.status(401);
-
-      let message = {
-        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-        error: "Invalid credentials",
-      };
-
+      let message = Logger.message(req, res, 401, "error", "Invalid credentials");
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
@@ -92,23 +75,16 @@ export default {
         expiresIn: "1h",
       });
 
-      res.status(200);
+      await LoggerService.create(
+        { user_id: user[0].id, module: "Authentication", note: "User login" },
+        token
+      );
 
-      let message = {
-        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-        user: { ...user[0], token: token },
-      };
-
-      Logger.out([JSON.stringify(message)]);
+      let message = Logger.message(req, res, 200, "user", { ...user[0], token: token });
+      Logger.error([JSON.stringify(message)]);
       return res.json(message);
     } else {
-      res.status(401);
-
-      let message = {
-        endpoint: `${req.method} ${req.originalUrl} ${res.statusCode}`,
-        error: "Invalid credentials",
-      };
-
+      let message = Logger.message(req, res, 401, "error", "Invalid credentials");
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
