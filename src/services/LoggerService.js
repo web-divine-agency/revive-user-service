@@ -12,7 +12,7 @@ export default {
     return axios({
       method: "POST",
       baseURL: url.loggerService,
-      url: `/admin/res/logs`,
+      url: `/portal/res/logs`,
       data: payload,
       headers: {
         Authorization: token,

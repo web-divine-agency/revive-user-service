@@ -75,10 +75,16 @@ export default {
         expiresIn: "1h",
       });
 
-      await LoggerService.create(
-        { user_id: user[0].id, module: "Authentication", note: "User login" },
-        token
-      );
+      try {
+        await LoggerService.create(
+          { user_id: user[0].id, module: "Authentication", note: "User login" },
+          token
+        );
+      } catch (error) {
+        let message = Logger.message(req, res, 500, "error", error);
+        Logger.error([JSON.stringify(message)]);
+        return res.json(message);
+      }
 
       let message = Logger.message(req, res, 200, "user", { ...user[0], token: token });
       Logger.error([JSON.stringify(message)]);
