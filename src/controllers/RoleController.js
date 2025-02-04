@@ -165,7 +165,7 @@ export default {
         return res.json(message);
       })
       .catch((error) => {
-        let message = Logger.message(req, res, 200, "error", error);
+        let message = Logger.message(req, res, 500, "error", error);
         Logger.error([JSON.stringify(message)]);
         return res.json(message);
       });
