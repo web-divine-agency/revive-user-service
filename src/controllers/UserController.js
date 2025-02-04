@@ -125,7 +125,7 @@ export default {
 
     let role;
     let user;
-    let ticket_types;
+    let templates;
 
     // Get the role
     try {
@@ -186,15 +186,15 @@ export default {
 
     // Enable all ticket types for admin role
     if (role[0].name === "Admin") {
-      ticket_types = await MysqlService.select(
-        `SELECT id,name FROM ticket_types WHERE deleted_at IS NULL`
+      templates = await MysqlService.select(
+        `SELECT id,name FROM templates WHERE deleted_at IS NULL`
       );
 
-      ticket_types.map(async (item) => {
+      templates.map(async (item) => {
         try {
-          await MysqlService.create("user_ticket_types", {
+          await MysqlService.create("user_templates", {
             user_id: user.insertId,
-            ticket_type_id: item.id,
+            template_id: item.id,
           });
         } catch (error) {
           let message = Logger.message(req, res, 500, "error", error);
