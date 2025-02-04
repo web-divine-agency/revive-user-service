@@ -27,9 +27,10 @@ export default {
 
     const { show, page } = req.query;
 
-    let branch_id = req.query.branch_id ?? null;
-    let role = req.query.role ?? "";
-    let find = req.query.find ?? "";
+    let branch_id = req.query.branch_id || null;
+    let role = req.query.role || "";
+    let find = req.query.find || "";
+    let sort_by = req.query.sort_by || "users.last_name";
 
     let query = `
       SELECT
@@ -65,6 +66,7 @@ export default {
           users.email LIKE "%${find}%"
         )
       GROUP BY users.id
+      ORDER BY ${sort_by} ASC
     `;
 
     MysqlService.paginate(query, "users.id", show, page)

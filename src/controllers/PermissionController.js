@@ -42,7 +42,7 @@ export default {
     }
 
     const { show, page } = req.query;
-    let find = req.query.find ?? "";
+    let find = req.query.find || "";
 
     let query = `
       SELECT
