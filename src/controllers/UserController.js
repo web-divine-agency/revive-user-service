@@ -14,9 +14,12 @@ export default {
    * @returns
    */
   list: (req, res) => {
+    console.log(req.query);
+
     let validation = Validator.check([
+      Validator.required(req.query, "dir"),
+      Validator.required(req.query, "last"),
       Validator.required(req.query, "show"),
-      Validator.required(req.query, "page"),
     ]);
 
     if (!validation.pass) {
@@ -25,12 +28,12 @@ export default {
       return res.json(message);
     }
 
-    const { show, page } = req.query;
+    const { dir, last, show } = req.query;
 
-    let branch_id = req.query.branch_id || null;
+    let branch_id = req.query.branch_id || "";
     let role = req.query.role || "";
     let find = req.query.find || "";
-    let sort_by = req.query.sort_by || "users.last_name";
+    let direction = dir === "next" ? "<" : ">";
 
     let query = `
       SELECT
@@ -57,19 +60,22 @@ export default {
       INNER JOIN branches ON user_branches.branch_id = branches.id
       INNER JOIN user_roles ON users.id = user_roles.user_id
       INNER JOIN roles ON user_roles.role_id = roles.id
-      WHERE branches.id = IFNULL(${branch_id}, branches.id)
-      AND roles.name LIKE "%${role}%" 
-      AND 
+      WHERE users.deleted_at IS NULL
+      AND branches.id LIKE "%${branch_id}%"
+      AND roles.name LIKE "%${role}%"
+      AND
         (
           users.first_name LIKE "%${find}%" OR
           users.last_name LIKE "%${find}%" OR
           users.email LIKE "%${find}%"
         )
+      AND users.created_at ${direction} ${last}
       GROUP BY users.id
-      ORDER BY ${sort_by} ASC
+      ORDER BY users.created_at_order DESC
+      LIMIT ${show}
     `;
 
-    MysqlService.paginate(query, "users.id", show, page)
+    MysqlService.select(query)
       .then((response) => {
         let message = Logger.message(req, res, 200, "users", response);
         Logger.out([JSON.stringify(message)]);
