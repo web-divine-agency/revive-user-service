@@ -31,8 +31,9 @@ export default {
    */
   list: (req, res) => {
     let validation = Validator.check([
+      Validator.required(req.query, "direction"),
+      Validator.required(req.query, "last"),
       Validator.required(req.query, "show"),
-      Validator.required(req.query, "page"),
     ]);
 
     if (!validation.pass) {
@@ -41,8 +42,10 @@ export default {
       return res.json(message);
     }
 
-    const { show, page } = req.query;
+    const { last, show } = req.query;
+
     let find = req.query.find || "";
+    let direction = req.query.direction === "next" ? "<" : ">";
 
     let query = `
       SELECT
@@ -50,12 +53,15 @@ export default {
       FROM permissions
       WHERE deleted_at IS NULL
       AND 
-        (
-          permissions.name LIKE "%${find}%"
-        )
-      `;
+      (
+        permissions.name LIKE "%${find}%"
+      )
+      AND created_at_order ${direction} ${last}
+      ORDER BY created_at_order DESC
+      LIMIT ${show}
+    `;
 
-    MysqlService.paginate(query, "id", show, page)
+    MysqlService.select(query)
       .then((response) => {
         let message = Logger.message(req, res, 200, "permissions", response);
         Logger.out([JSON.stringify(message)]);

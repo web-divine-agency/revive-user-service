@@ -14,10 +14,8 @@ export default {
    * @returns
    */
   list: (req, res) => {
-    console.log(req.query);
-
     let validation = Validator.check([
-      Validator.required(req.query, "dir"),
+      Validator.required(req.query, "direction"),
       Validator.required(req.query, "last"),
       Validator.required(req.query, "show"),
     ]);
@@ -28,12 +26,12 @@ export default {
       return res.json(message);
     }
 
-    const { dir, last, show } = req.query;
+    const { last, show } = req.query;
 
     let branch_id = req.query.branch_id || "";
     let role = req.query.role || "";
     let find = req.query.find || "";
-    let direction = dir === "next" ? "<" : ">";
+    let direction = req.query.direction === "next" ? "<" : ">";
 
     let query = `
       SELECT
@@ -69,7 +67,7 @@ export default {
           users.last_name LIKE "%${find}%" OR
           users.email LIKE "%${find}%"
         )
-      AND users.created_at ${direction} ${last}
+      AND users.created_at_order ${direction} ${last}
       GROUP BY users.id
       ORDER BY users.created_at_order DESC
       LIMIT ${show}

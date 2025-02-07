@@ -31,8 +31,9 @@ export default {
    */
   list: (req, res) => {
     let validation = Validator.check([
+      Validator.required(req.query, "direction"),
+      Validator.required(req.query, "last"),
       Validator.required(req.query, "show"),
-      Validator.required(req.query, "page"),
     ]);
 
     if (!validation.pass) {
@@ -41,13 +42,17 @@ export default {
       return res.json(message);
     }
 
-    const { show, page } = req.query;
+    const { last, show } = req.query;
+
+    let find = req.query.find || "";
+    let direction = req.query.direction === "next" ? "<" : ">";
 
     let query = `
       SELECT
         ANY_VALUE(roles.id) AS role_id,
         roles.name AS role_name,
         roles.description AS role_description,
+        roles.created_at_order,
         JSON_ARRAYAGG(
             JSON_OBJECT('name', permissions.name, 'id', permissions.id, 'description', permissions.description)
         ) AS all_permissions
@@ -56,10 +61,18 @@ export default {
       INNER JOIN permissions ON role_permissions.permission_id = permissions.id
       WHERE roles.deleted_at IS NULL
       AND role_permissions.deleted_at IS NULL
+      AND
+      (
+        roles.name LIKE "%${find}%" OR
+        roles.description LIKE "%${find}%"
+      )
+      AND roles.created_at_order ${direction} ${last}
       GROUP BY roles.id
+      ORDER BY roles.created_at_order DESC
+      LIMIT ${show}
     `;
 
-    MysqlService.paginate(query, "roles.id", show, page)
+    MysqlService.select(query)
       .then((response) => {
         let message = Logger.message(req, res, 200, "roles", response);
         Logger.out([JSON.stringify(message)]);
