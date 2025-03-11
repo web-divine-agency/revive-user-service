@@ -4,7 +4,7 @@ import bodyParser from "body-parser";
 
 import { app } from "./Server.js";
 
-import { authAdmin, authenticated } from "./middleware/auth.js";
+import { authenticated } from "./middleware/auth.js";
 
 import Controller from "./controllers/Controller.js";
 import UserController from "./controllers/UserController.js";
@@ -31,22 +31,22 @@ portal.use(authenticated);
  * Admin routes
  */
 app.use("/admin", admin);
-admin.use(authAdmin);
-admin.get("/res/users", UserController.list);
-admin.post("/res/users", UserController.create);
+// admin.use(authAdmin);
+admin.get("/users", UserController.list);
+admin.post("/users", UserController.create);
 
-admin.get("/res/roles", RoleController.list);
-admin.post("/res/roles", RoleController.create);
-admin.get("/res/roles/:role_id", RoleController.read);
-admin.put("/res/roles/:role_id", RoleController.update);
-admin.delete("/res/roles/:role_id", RoleController.delete);
+admin.get("/roles/all", RoleController.all);
 
-admin.get("/fn/roles-all", RoleController.all);
+admin.get("/roles", RoleController.list);
+admin.post("/roles", RoleController.create);
+admin.get("/roles/:role_id", RoleController.read);
+admin.put("/roles/:role_id", RoleController.update);
+admin.delete("/roles/:role_id", RoleController.delete);
 
-admin.get("/res/permissions", PermissionController.list);
-admin.post("/res/permissions", PermissionController.create);
+admin.get("/permissions/all", PermissionController.all);
 
-admin.get("/fn/permissions-all", PermissionController.all);
+admin.get("/permissions", PermissionController.list);
+admin.post("/permissions", PermissionController.create);
 
 /**
  * Base routes

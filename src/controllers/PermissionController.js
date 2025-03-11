@@ -1,8 +1,6 @@
 import Logger from "../util/logger.js";
 import Validator from "../util/validator.js";
 
-import MysqlService from "../services/MysqlService.js";
-
 export default {
   /**
    * List all permissions without pagination

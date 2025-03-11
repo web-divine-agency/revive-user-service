@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 import Logger from "../util/logger.js";
 import Validator from "../util/validator.js";
 
-import MysqlService from "../services/MysqlService.js";
 import LoggerService from "../services/LoggerService.js";
 
 export default {

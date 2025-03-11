@@ -1,12 +1,11 @@
 {
   "name": "revive-user-service",
   "version": "1.0.0",
-  "description": "API service for users management",
+  "description": "Revive Pharmacy user service",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon --exec \"npx eslint && node src/index.js\"",
-    "migrate": "node -r dotenv/config src/database/migration.js"
+    "start": "nodemon --exec \"npx eslint && node src/index.js\""
   },
   "repository": {
     "type": "git",
@@ -29,7 +28,6 @@
     "mysql": "^2.18.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.9.0",
     "eslint": "^9.9.0"
   }
 }

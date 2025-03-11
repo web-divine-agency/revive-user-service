@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: "01-UserService",
+      name: "ReviveUserService",
       namespace: "revive-user-service",
       script: "./src/index.js",
       watch: ["./src", "./src/*.js"],

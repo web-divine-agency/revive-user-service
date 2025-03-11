@@ -2,9 +2,7 @@ import { createHmac } from "crypto";
 
 import Logger from "../util/logger.js";
 import Validator from "../util/validator.js";
-
-import MysqlService from "../services/MysqlService.js";
-import LoggerService from "../services/LoggerService.js";
+import DatabaseService from "../services/DatabaseService.js";
 
 export default {
   /**
@@ -135,7 +133,8 @@ export default {
 
     // Get the role
     try {
-      role = await MysqlService.select(`SELECT id,name FROM roles WHERE name = "${role_name}"`);
+      role = await DatabaseService.select({query: `SELECT id,name FROM roles WHERE name = "${role_name}"`})
+      console.log(role);
     } catch (error) {
       let message = Logger.message(req, res, 500, "error", error);
       Logger.error([JSON.stringify(message)]);
