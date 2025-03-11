@@ -1,19 +1,24 @@
 import axios from "axios";
 import { url } from "../config/app.js";
 
+const token = process.env.APP_PASSWORD;
+
 export default {
   /**
    * Select resource
-   * @param {*} payload 
-   * @returns 
+   * @param {*} payload
+   * @returns
    */
   select: async (payload) => {
     try {
       return await axios({
         method: "GET",
         baseURL: url.databaseService,
-        url: `/portal/select`,
+        url: `/db/select`,
         data: payload,
+        headers: {
+          Authorization: token,
+        },
       });
     } catch (error) {
       const { status, data } = error?.response;
@@ -27,16 +32,30 @@ export default {
    * @param {*} token
    * @returns
    */
-  create: async (payload, token) => {
+  create: async (payload) => {
     try {
       return await axios({
         method: "POST",
         baseURL: url.databaseService,
-        url: `/admin/create`,
+        url: `/db/create`,
         data: payload,
         headers: {
           Authorization: token,
         },
+      });
+    } catch (error) {
+      const { status, data } = error?.response;
+      return Promise.reject({ status: status, database: data });
+    }
+  },
+
+  user: async (payload) => {
+    try {
+      return await axios({
+        method: "GET",
+        baseURL: url.databaseService,
+        url: `/user`,
+        data: payload,
       });
     } catch (error) {
       const { status, data } = error?.response;

@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import Logger from "../util/logger.js";
 import Validator from "../util/validator.js";
 
-import LoggerService from "../services/LoggerService.js";
+import DatabaseService from "../services/DatabaseService.js";
 
 export default {
   /**
@@ -14,20 +14,22 @@ export default {
    * @returns
    */
   login: async (req, res) => {
-    let validation = Validator.check([
+    let message, validation, query, user, userPassword, reqPassword;
+
+    validation = Validator.check([
       Validator.required(req.body, "username"),
       Validator.required(req.body, "password"),
     ]);
 
     if (!validation.pass) {
-      let message = Logger.message(req, res, 422, "error", validation.result);
+      message = Logger.message(req, res, 422, "error", validation.result);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
 
     const { username, password } = req.body;
 
-    let userQuery = `
+    query = `
       SELECT
         users.id,
         users.first_name,
@@ -48,20 +50,26 @@ export default {
       AND users.deleted_at IS NULL
     `;
 
-    let user = await MysqlService.select(userQuery);
-
-    if (!user.length) {
-      let message = Logger.message(req, res, 404, "error", "User not found");
+    try {
+      user = (await DatabaseService.user({ query: query })).data.result;
+    } catch (error) {
+      message = Logger.message(req, res, 500, "error", error);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
 
-    let userPassword = user[0].password;
-    let reqPassword = createHmac("sha256", process.env.HASH_SECRET).update(password).digest("hex");
+    if (!user.length) {
+      message = Logger.message(req, res, 404, "error", "User not found");
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
+    }
+
+    userPassword = user[0].password;
+    reqPassword = createHmac("sha256", process.env.HASH_SECRET).update(password).digest("hex");
 
     // Check length before using timingSageEqual
     if (userPassword.length !== reqPassword.length) {
-      let message = Logger.message(req, res, 401, "error", "Invalid credentials");
+      message = Logger.message(req, res, 401, "error", "Invalid credentials");
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
@@ -74,16 +82,7 @@ export default {
         expiresIn: "1h",
       });
 
-      try {
-        await LoggerService.create(
-          { user_id: user[0].id, module: "Authentication", note: "User login" },
-          token
-        );
-      } catch (error) {
-        let message = Logger.message(req, res, 500, "error", error);
-        Logger.error([JSON.stringify(message)]);
-        return res.json(message);
-      }
+      // To Do: Logger service goes here
 
       let message = Logger.message(req, res, 200, "user", { ...user[0], token: token });
       Logger.error([JSON.stringify(message)]);

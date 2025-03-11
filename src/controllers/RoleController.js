@@ -1,6 +1,8 @@
 import Logger from "../util/logger.js";
 import Validator from "../util/validator.js";
 
+import DatabaseService from "../services/DatabaseService.js";
+
 export default {
   /**
    * List all roles without pagination
@@ -90,10 +92,12 @@ export default {
    * @returns
    */
   create: async (req, res) => {
-    let validation = Validator.check([Validator.required(req.body, "name")]);
+    let message, validation, role;
+
+    validation = Validator.check([Validator.required(req.body, "name")]);
 
     if (!validation.pass) {
-      let message = Logger.message(req, res, 422, "error", validation.result);
+      message = Logger.message(req, res, 422, "error", validation.result);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
@@ -106,12 +110,15 @@ export default {
       return res.json(message);
     }
 
-    let role;
-
     try {
-      role = await MysqlService.create("roles", { name: name, description: description });
+      role = (
+        await DatabaseService.create({
+          table: "roles",
+          data: { name: name, description: description },
+        })
+      ).data.result;
     } catch (error) {
-      let message = Logger.message(req, res, 500, "error", error);
+      message = Logger.message(req, res, 500, "error", error);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
@@ -119,18 +126,21 @@ export default {
     // Create role_permissions
     permission_ids?.map(async (item) => {
       try {
-        await MysqlService.create("role_permissions", {
-          role_id: role.insertId,
-          permission_id: item,
+        await DatabaseService.create({
+          table: "role_permissions",
+          data: {
+            role_id: role.insertId,
+            permission_id: item,
+          },
         });
       } catch (error) {
-        let message = Logger.message(req, res, 500, "error", error);
+        message = Logger.message(req, res, 500, "error", error);
         Logger.error([JSON.stringify(message)]);
         return res.json(message);
       }
     });
 
-    let message = Logger.message(req, res, 200, "role", role.insertId);
+    message = Logger.message(req, res, 200, "role", role.insertId);
     Logger.error([JSON.stringify(message)]);
     return res.json(message);
   },

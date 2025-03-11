@@ -2,6 +2,7 @@ import { createHmac } from "crypto";
 
 import Logger from "../util/logger.js";
 import Validator from "../util/validator.js";
+
 import DatabaseService from "../services/DatabaseService.js";
 
 export default {
@@ -91,7 +92,9 @@ export default {
    * @returns
    */
   create: async (req, res) => {
-    let validation = Validator.check([
+    let message, validation, role, user, templates;
+
+    validation = Validator.check([
       Validator.required(req.body, "first_name"),
       Validator.required(req.body, "last_name"),
       Validator.required(req.body, "gender"),
@@ -104,73 +107,71 @@ export default {
     ]);
 
     if (!validation.pass) {
-      let message = Logger.message(req, res, 422, "error", validation.result);
+      message = Logger.message(req, res, 422, "error", validation.result);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
 
-    const {
-      first_name,
-      last_name,
-      gender,
-      username,
-      email,
-      password,
-      branch_ids,
-      role_name,
-      user_id,
-      token,
-    } = req.body;
+    const { first_name, last_name, gender, username, email, password, branch_ids, role_name } =
+      req.body;
 
     if (!branch_ids || !branch_ids.length) {
-      Logger.error([JSON.stringify(validation)]);
-      return res.status(422).json({ branch_ids: "required" });
+      message = Logger.message(req, res, 422, "error", { branch_ids: "required" });
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
     }
-
-    let role;
-    let user;
-    let templates;
 
     // Get the role
     try {
-      role = await DatabaseService.select({query: `SELECT id,name FROM roles WHERE name = "${role_name}"`})
-      console.log(role);
+      role = (
+        await DatabaseService.select({
+          query: `SELECT id,name FROM roles WHERE name = "${role_name}"`,
+        })
+      ).data.result;
     } catch (error) {
-      let message = Logger.message(req, res, 500, "error", error);
+      message = Logger.message(req, res, 500, "error", error);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
 
     if (!role || !role.length) {
-      let message = Logger.message(req, res, 404, "error", "Role not found");
+      message = Logger.message(req, res, 404, "error", "Role not found");
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
 
     // Create user
     try {
-      user = await MysqlService.create("users", {
-        first_name: first_name,
-        last_name: last_name,
-        gender: gender,
-        email: email,
-        username: username,
-        password: createHmac("sha256", process.env.HASH_SECRET).update(password).digest("hex"),
-      });
+      user = (
+        await DatabaseService.create({
+          table: "users",
+          data: {
+            first_name: first_name,
+            last_name: last_name,
+            gender: gender,
+            email: email,
+            username: username,
+            password: createHmac("sha256", process.env.HASH_SECRET).update(password).digest("hex"),
+          },
+        })
+      ).data.result;
     } catch (error) {
-      let message = Logger.message(req, res, 500, "error", error);
+      message = Logger.message(req, res, 500, "error", error);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
 
     // Create user role
     try {
-      await MysqlService.create("user_roles", {
-        user_id: user.insertId,
-        role_id: role[0].id,
+      await DatabaseService.create({
+        table: "user_roles",
+        data: {
+          user_id: user.insertId,
+          role_id: role[0].id,
+        },
       });
     } catch (error) {
-      let message = Logger.message(req, res, 500, "error", error);
+      message = Logger.message(req, res, 500, "error", error);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
@@ -178,12 +179,15 @@ export default {
     // Record user branches
     branch_ids.map(async (item) => {
       try {
-        await MysqlService.create("user_branches", {
-          user_id: user.insertId,
-          branch_id: item,
+        await DatabaseService.create({
+          table: "user_branches",
+          data: {
+            user_id: user.insertId,
+            branch_id: item,
+          },
         });
       } catch (error) {
-        let message = Logger.message(req, res, 500, "error", error);
+        message = Logger.message(req, res, 500, "error", error);
         Logger.error([JSON.stringify(message)]);
         return res.json(message);
       }
@@ -191,9 +195,17 @@ export default {
 
     // Enable all ticket types for admin role
     if (role[0].name === "Admin") {
-      templates = await MysqlService.select(
-        `SELECT id,name FROM templates WHERE deleted_at IS NULL`
-      );
+      try {
+        templates = (
+          await DatabaseService.select({
+            query: `SELECT id,name FROM templates WHERE deleted_at IS NULL`,
+          })
+        ).data.result;
+      } catch (error) {
+        message = Logger.message(req, res, 500, "error", error);
+        Logger.error([JSON.stringify(message)]);
+        return res.json(message);
+      }
 
       templates.map(async (item) => {
         try {
@@ -210,13 +222,9 @@ export default {
     }
 
     // To Do: Send an email for the credentials
+    // To Do: Logger service
 
-    await LoggerService.create(
-      { user_id: user_id, module: "Users", note: "Created a new user" },
-      token
-    );
-
-    let message = Logger.message(req, res, 200, "user", user.insertId);
+    message = Logger.message(req, res, 200, "user", user.insertId);
     Logger.out([JSON.stringify(message)]);
     return res.json(message);
   },
