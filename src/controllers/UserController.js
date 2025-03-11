@@ -4,6 +4,7 @@ import Logger from "../util/logger.js";
 import Validator from "../util/validator.js";
 
 import DatabaseService from "../services/DatabaseService.js";
+import LoggerService from "../services/LoggerService.js";
 
 export default {
   /**
@@ -102,8 +103,7 @@ export default {
       Validator.required(req.body, "email"),
       Validator.required(req.body, "password"),
       Validator.required(req.body, "role_name"),
-      Validator.required(req.body, "user_id"),
-      Validator.required(req.body, "token"),
+      Validator.required(req.body, "auth_id"),
     ]);
 
     if (!validation.pass) {
@@ -112,8 +112,17 @@ export default {
       return res.json(message);
     }
 
-    const { first_name, last_name, gender, username, email, password, branch_ids, role_name } =
-      req.body;
+    const {
+      first_name,
+      last_name,
+      gender,
+      username,
+      email,
+      password,
+      branch_ids,
+      role_name,
+      auth_id,
+    } = req.body;
 
     if (!branch_ids || !branch_ids.length) {
       message = Logger.message(req, res, 422, "error", { branch_ids: "required" });
@@ -222,7 +231,14 @@ export default {
     }
 
     // To Do: Send an email for the credentials
-    // To Do: Logger service
+
+    await LoggerService.create({ user_id: auth_id, module: "Users", note: "Created a user" }).catch(
+      (error) => {
+        let message = Logger.message(req, res, 500, "error", error);
+        Logger.error([JSON.stringify(message)]);
+        return res.json(message);
+      }
+    );
 
     message = Logger.message(req, res, 200, "user", user.insertId);
     Logger.out([JSON.stringify(message)]);
