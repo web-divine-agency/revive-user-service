@@ -14,26 +14,28 @@ export default {
    * @returns
    */
   list: (req, res) => {
-    let validation = Validator.check([
+    let message, validation, branch_id, role, find, direction, query;
+
+    validation = Validator.check([
       Validator.required(req.query, "direction"),
       Validator.required(req.query, "last"),
       Validator.required(req.query, "show"),
     ]);
 
     if (!validation.pass) {
-      let message = Logger.message(req, res, 422, "error", validation.result);
+      message = Logger.message(req, res, 422, "error", validation.result);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
 
     const { last, show } = req.query;
 
-    let branch_id = req.query.branch_id || "";
-    let role = req.query.role || "";
-    let find = req.query.find || "";
-    let direction = req.query.direction === "next" ? "<" : ">";
+    branch_id = req.query.branch_id || "";
+    role = req.query.role || "";
+    find = req.query.find || "";
+    direction = req.query.direction === "next" ? "<" : ">";
 
-    let query = `
+    query = `
       SELECT
         users.id,
         users.first_name,
@@ -73,13 +75,15 @@ export default {
       LIMIT ${show}
     `;
 
-    MysqlService.select(query)
+    DatabaseService.select({ query })
       .then((response) => {
-        let message = Logger.message(req, res, 200, "users", response);
+        console.log(response.data.result);
+        let message = Logger.message(req, res, 200, "users", response.data.result);
         Logger.out([JSON.stringify(message)]);
         return res.json(message);
       })
       .catch((error) => {
+        console.error(error);
         let message = Logger.message(req, res, 500, "error", error);
         Logger.error([JSON.stringify(message)]);
         return res.json(message);
