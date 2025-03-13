@@ -8,12 +8,12 @@ const env = {
     resourceService: "http://revive-resource-service:8806",
   },
   uat: {
-    databaseService: "http://nadescrib.com:8801",
-    userService: "http://nadescrib.com:8802",
-    ticketService: "http://nadescrib.com:8803",
-    branchService: "http://nadescrib.com:8804",
-    loggerService: "http://nadescrib.com:8805",
-    resourceService: "http://nadescrib.com:8806",
+    databaseService: "https://nadescrib.com:4401",
+    userService: "https://nadescrib.com:4402",
+    ticketService: "https://nadescrib.com:4403",
+    branchService: "https://nadescrib.com:4404",
+    loggerService: "https://nadescrib.com:4405",
+    resourceService: "https://nadescrib.com:4406",
   },
 };
 
