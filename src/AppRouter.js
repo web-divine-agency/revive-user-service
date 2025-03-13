@@ -12,9 +12,7 @@ import AuthController from "./controllers/AuthController.js";
 import RoleController from "./controllers/RoleController.js";
 import PermissionController from "./controllers/PermissionController.js";
 
-if (process.env.APP_ENV === "dev") {
-  app.use(cors());
-}
+app.use(cors());
 
 app.use(bodyParser.json());
 
