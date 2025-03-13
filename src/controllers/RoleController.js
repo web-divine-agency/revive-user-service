@@ -10,14 +10,16 @@ export default {
    * @param {*} res
    */
   all: (req, res) => {
-    MysqlService.select(`SELECT * FROM roles WHERE deleted_at IS NULL`)
+    let message;
+
+    DatabaseService.select({ query: `SELECT * FROM roles WHERE deleted_at IS NULL` })
       .then((response) => {
-        let message = Logger.message(req, res, 200, "roles", response);
+        message = Logger.message(req, res, 200, "roles", response.data.result);
         Logger.out([JSON.stringify(message)]);
         return res.json(message);
       })
       .catch((error) => {
-        let message = Logger.message(req, res, 200, "error", error);
+        message = Logger.message(req, res, 200, "error", error);
         Logger.error([JSON.stringify(message)]);
         return res.json(message);
       });

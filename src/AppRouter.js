@@ -27,25 +27,27 @@ const admin = express.Router();
 app.use("/portal", portal);
 portal.use(authenticated);
 
+portal.get("/users", UserController.list);
+portal.get("/users/:user_id", UserController.read);
+
+portal.get("/roles/all", RoleController.all);
+portal.get("/roles", RoleController.list);
+portal.get("/roles/:role_id", RoleController.read);
+
+portal.get("/permissions/all", PermissionController.all);
+portal.get("/permissions", PermissionController.list);
+
 /**
  * Admin routes
  */
 app.use("/admin", admin);
 // admin.use(authAdmin);
-admin.get("/users", UserController.list);
 admin.post("/users", UserController.create);
 
-admin.get("/roles/all", RoleController.all);
-
-admin.get("/roles", RoleController.list);
 admin.post("/roles", RoleController.create);
-admin.get("/roles/:role_id", RoleController.read);
 admin.put("/roles/:role_id", RoleController.update);
 admin.delete("/roles/:role_id", RoleController.delete);
 
-admin.get("/permissions/all", PermissionController.all);
-
-admin.get("/permissions", PermissionController.list);
 admin.post("/permissions", PermissionController.create);
 
 /**

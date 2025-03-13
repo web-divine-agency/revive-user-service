@@ -77,13 +77,11 @@ export default {
 
     DatabaseService.select({ query })
       .then((response) => {
-        console.log(response.data.result);
         let message = Logger.message(req, res, 200, "users", response.data.result);
         Logger.out([JSON.stringify(message)]);
         return res.json(message);
       })
       .catch((error) => {
-        console.error(error);
         let message = Logger.message(req, res, 500, "error", error);
         Logger.error([JSON.stringify(message)]);
         return res.json(message);
@@ -247,5 +245,60 @@ export default {
     message = Logger.message(req, res, 200, "user", user.insertId);
     Logger.out([JSON.stringify(message)]);
     return res.json(message);
+  },
+
+  read: (req, res) => {
+    let message, validation, query;
+
+    validation = Validator.check([Validator.required(req.params, "user_id")]);
+
+    if (!validation.pass) {
+      message = Logger.message(req, res, 422, "error", validation.result);
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
+    }
+
+    const { user_id } = req.params;
+
+    query = `
+      SELECT
+        users.id,
+        users.first_name,
+        users.last_name,
+        users.gender,
+        users.username,
+        users.email,
+        users.mobile,
+        ANY_VALUE(roles.id) AS role_id,
+        ANY_VALUE(roles.name) AS role_name,
+        JSON_ARRAYAGG(
+            JSON_OBJECT('name', branches.name, 'id', branches.id)
+        ) AS all_branches,
+        users.verified_at,
+        users.verified_at_order,
+        users.created_at,
+        users.created_at_order,
+        users.updated_at,
+        users.updated_at_order
+      FROM users
+      INNER JOIN user_branches ON users.id = user_branches.user_id
+      INNER JOIN branches ON user_branches.branch_id = branches.id
+      INNER JOIN user_roles ON users.id = user_roles.user_id
+      INNER JOIN roles ON user_roles.role_id = roles.id
+      WHERE users.deleted_at IS NULL
+      AND users.id = ${user_id}
+    `;
+
+    DatabaseService.select({ query })
+      .then((response) => {
+        let message = Logger.message(req, res, 200, "user", response.data.result[0]);
+        Logger.out([JSON.stringify(message)]);
+        return res.json(message);
+      })
+      .catch((error) => {
+        let message = Logger.message(req, res, 500, "error", error);
+        Logger.error([JSON.stringify(message)]);
+        return res.json(message);
+      });
   },
 };
