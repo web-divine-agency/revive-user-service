@@ -32,24 +32,26 @@ export default {
    * @returns
    */
   list: (req, res) => {
-    let validation = Validator.check([
+    let message, validation, find, direction, query;
+
+    validation = Validator.check([
       Validator.required(req.query, "direction"),
       Validator.required(req.query, "last"),
       Validator.required(req.query, "show"),
     ]);
 
     if (!validation.pass) {
-      let message = Logger.message(req, res, 422, "error", validation.result);
+      message = Logger.message(req, res, 422, "error", validation.result);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
 
     const { last, show } = req.query;
 
-    let find = req.query.find || "";
-    let direction = req.query.direction === "next" ? "<" : ">";
+    find = req.query.find || "";
+    direction = req.query.direction === "next" ? "<" : ">";
 
-    let query = `
+    query = `
       SELECT
         ANY_VALUE(roles.id) AS role_id,
         roles.name AS role_name,
@@ -74,9 +76,9 @@ export default {
       LIMIT ${show}
     `;
 
-    MysqlService.select(query)
+    DatabaseService.select({ query })
       .then((response) => {
-        let message = Logger.message(req, res, 200, "roles", response);
+        let message = Logger.message(req, res, 200, "roles", response.data.result);
         Logger.out([JSON.stringify(message)]);
         return res.json(message);
       })

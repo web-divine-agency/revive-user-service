@@ -61,6 +61,7 @@ export default {
       INNER JOIN user_roles ON users.id = user_roles.user_id
       INNER JOIN roles ON user_roles.role_id = roles.id
       WHERE users.deleted_at IS NULL
+      AND user_branches.deleted_at IS NULL
       AND branches.id LIKE "%${branch_id}%"
       AND roles.name LIKE "%${role}%"
       AND
@@ -247,6 +248,12 @@ export default {
     return res.json(message);
   },
 
+  /**
+   * Read user
+   * @param {*} req
+   * @param {*} res
+   * @returns
+   */
   read: (req, res) => {
     let message, validation, query;
 
@@ -286,6 +293,7 @@ export default {
       INNER JOIN user_roles ON users.id = user_roles.user_id
       INNER JOIN roles ON user_roles.role_id = roles.id
       WHERE users.deleted_at IS NULL
+      AND user_branches.deleted_at IS NULL
       AND users.id = ${user_id}
     `;
 
@@ -300,5 +308,131 @@ export default {
         Logger.error([JSON.stringify(message)]);
         return res.json(message);
       });
+  },
+
+  /**
+   * Update user
+   * @param {*} req
+   * @param {*} res
+   * @returns
+   */
+  update: async (req, res) => {
+    let message, validation, user;
+
+    validation = Validator.check([
+      Validator.required(req.params, "user_id"),
+      Validator.required(req.body, "first_name"),
+      Validator.required(req.body, "last_name"),
+      Validator.required(req.body, "gender"),
+      Validator.required(req.body, "email"),
+      Validator.required(req.body, "role_id"),
+      Validator.required(req.body, "auth_id"),
+    ]);
+
+    if (!validation.pass) {
+      message = Logger.message(req, res, 422, "error", validation.result);
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
+    }
+
+    const { user_id } = req.params;
+
+    const { first_name, last_name, gender, email, password, branch_ids, role_id, auth_id } =
+      req.body;
+
+    if (!branch_ids || !branch_ids.length) {
+      message = Logger.message(req, res, 422, "error", { branch_ids: "required" });
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
+    }
+
+    // Update user role
+    try {
+      await DatabaseService.update({
+        table: "user_roles",
+        data: {
+          role_id: role_id,
+        },
+        params: {
+          user_id,
+        },
+      });
+    } catch (error) {
+      message = Logger.message(req, res, 500, "error", error);
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
+    }
+
+    // Update user
+    try {
+      user = (
+        await DatabaseService.update({
+          table: "users",
+          data: {
+            first_name: first_name,
+            last_name: last_name,
+            gender: gender,
+            email: email,
+            ...(password && {
+              password: createHmac("sha256", process.env.HASH_SECRET)
+                .update(password)
+                .digest("hex"),
+            }),
+          },
+          params: {
+            id: user_id,
+          },
+        })
+      ).data.result;
+    } catch (error) {
+      message = Logger.message(req, res, 500, "error", error);
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
+    }
+
+    // Delete user branches to reset
+    try {
+      await DatabaseService.delete({
+        table: "user_branches",
+        params: {
+          user_id,
+        },
+      });
+    } catch (error) {
+      message = Logger.message(req, res, 500, "error", error);
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
+    }
+
+    // Record user branches
+    branch_ids.map(async (item) => {
+      try {
+        await DatabaseService.create({
+          table: "user_branches",
+          data: {
+            user_id,
+            branch_id: item,
+          },
+        });
+      } catch (error) {
+        message = Logger.message(req, res, 500, "error", error);
+        Logger.error([JSON.stringify(message)]);
+        return res.json(message);
+      }
+    });
+
+    // To Do: Send an email for the credentials
+
+    await LoggerService.create({ user_id: auth_id, module: "Users", note: "Updated a user" }).catch(
+      (error) => {
+        let message = Logger.message(req, res, 500, "error", error);
+        Logger.error([JSON.stringify(message)]);
+        return res.json(message);
+      }
+    );
+
+    message = Logger.message(req, res, 200, "user", user.insertId);
+    Logger.out([JSON.stringify(message)]);
+    return res.json(message);
   },
 };

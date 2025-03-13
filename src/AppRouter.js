@@ -4,7 +4,7 @@ import bodyParser from "body-parser";
 
 import { app } from "./Server.js";
 
-import { authenticated } from "./middleware/auth.js";
+import { authAdmin, authenticated } from "./middleware/auth.js";
 
 import Controller from "./controllers/Controller.js";
 import UserController from "./controllers/UserController.js";
@@ -41,8 +41,9 @@ portal.get("/permissions", PermissionController.list);
  * Admin routes
  */
 app.use("/admin", admin);
-// admin.use(authAdmin);
+admin.use(authAdmin);
 admin.post("/users", UserController.create);
+admin.put("/users/:user_id", UserController.update);
 
 admin.post("/roles", RoleController.create);
 admin.put("/roles/:role_id", RoleController.update);

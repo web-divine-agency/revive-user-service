@@ -49,6 +49,40 @@ export default {
     }
   },
 
+  update: async (payload) => {
+    try {
+      return await axios({
+        method: "PUT",
+        baseURL: url.databaseService,
+        url: `/db/update`,
+        data: payload,
+        headers: {
+          Authorization: token,
+        },
+      });
+    } catch (error) {
+      const { status, data } = error?.response;
+      return Promise.reject({ status: status, database: data });
+    }
+  },
+
+  delete: async (payload) => {
+    try {
+      return await axios({
+        method: "DELETE",
+        baseURL: url.databaseService,
+        url: `/db/delete`,
+        data: payload,
+        headers: {
+          Authorization: token,
+        },
+      });
+    } catch (error) {
+      const { status, data } = error?.response;
+      return Promise.reject({ status: status, database: data });
+    }
+  },
+
   user: async (payload) => {
     try {
       return await axios({
