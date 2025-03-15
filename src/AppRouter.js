@@ -42,6 +42,7 @@ app.use("/admin", admin);
 admin.use(authAdmin);
 admin.post("/users", UserController.create);
 admin.put("/users/:user_id", UserController.update);
+admin.delete("/users/:user_id", UserController.delete);
 
 admin.post("/roles", RoleController.create);
 admin.put("/roles/:role_id", RoleController.update);

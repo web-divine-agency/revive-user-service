@@ -435,4 +435,65 @@ export default {
     Logger.out([JSON.stringify(message)]);
     return res.json(message);
   },
+
+  /**
+   * Delete user
+   * @param {*} req
+   * @param {*} res
+   * @returns
+   */
+  delete: async (req, res) => {
+    let message, validation;
+
+    validation = Validator.check([Validator.required(req.params, "user_id")]);
+
+    if (!validation.pass) {
+      message = Logger.message(req, res, 422, "error", validation.result);
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
+    }
+
+    const { user_id } = req.params;
+
+    // Delete user roles
+    try {
+      await DatabaseService.delete({ table: "user_roles", params: { user_id } });
+    } catch (error) {
+      message = Logger.message(req, res, 500, "error", error.stack);
+      Logger.out([JSON.stringify(message)]);
+      return res.json(message);
+    }
+
+    // Delete user branches
+    try {
+      await DatabaseService.delete({
+        table: "user_branches",
+        params: {
+          user_id,
+        },
+      });
+    } catch (error) {
+      message = Logger.message(req, res, 500, "error", error);
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
+    }
+
+    // Delete user
+    try {
+      await DatabaseService.delete({
+        table: "users",
+        params: {
+          id: user_id,
+        },
+      });
+    } catch (error) {
+      message = Logger.message(req, res, 500, "error", error);
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
+    }
+
+    message = Logger.message(req, res, 200, "deleted", true);
+    Logger.out([JSON.stringify(message)]);
+    return res.json(message);
+  },
 };
