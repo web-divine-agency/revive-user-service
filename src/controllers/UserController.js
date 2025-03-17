@@ -235,13 +235,18 @@ export default {
 
     // To Do: Send an email for the credentials
 
-    await LoggerService.create({ user_id: auth_id, module: "Users", note: "Created a user" }).catch(
-      (error) => {
-        let message = Logger.message(req, res, 500, "error", error);
-        Logger.error([JSON.stringify(message)]);
-        return res.json(message);
-      }
-    );
+    // Create logs
+    try {
+      await LoggerService.create({
+        user_id: auth_id,
+        module: "Users",
+        note: `Created user #${user.insertId}`,
+      });
+    } catch (error) {
+      let message = Logger.message(req, res, 500, "error", error.stack);
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
+    }
 
     message = Logger.message(req, res, 200, "user", user.insertId);
     Logger.out([JSON.stringify(message)]);
@@ -423,13 +428,18 @@ export default {
 
     // To Do: Send an email for the credentials
 
-    await LoggerService.create({ user_id: auth_id, module: "Users", note: "Updated a user" }).catch(
-      (error) => {
-        let message = Logger.message(req, res, 500, "error", error);
-        Logger.error([JSON.stringify(message)]);
-        return res.json(message);
-      }
-    );
+    // Create logs
+    try {
+      await LoggerService.create({
+        user_id: auth_id,
+        module: "Users",
+        note: `Updated user #${user_id}`,
+      });
+    } catch (error) {
+      let message = Logger.message(req, res, 500, "error", error.stack);
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
+    }
 
     message = Logger.message(req, res, 200, "user", user.insertId);
     Logger.out([JSON.stringify(message)]);
@@ -445,7 +455,10 @@ export default {
   delete: async (req, res) => {
     let message, validation;
 
-    validation = Validator.check([Validator.required(req.params, "user_id")]);
+    validation = Validator.check([
+      Validator.required(req.params, "user_id"),
+      Validator.required(req.body, "auth_id"),
+    ]);
 
     if (!validation.pass) {
       message = Logger.message(req, res, 422, "error", validation.result);
@@ -454,6 +467,7 @@ export default {
     }
 
     const { user_id } = req.params;
+    const { auth_id } = req.body;
 
     // Delete user roles
     try {
@@ -488,6 +502,19 @@ export default {
       });
     } catch (error) {
       message = Logger.message(req, res, 500, "error", error);
+      Logger.error([JSON.stringify(message)]);
+      return res.json(message);
+    }
+
+    // Create logs
+    try {
+      await LoggerService.create({
+        user_id: auth_id,
+        module: "Users",
+        note: `Deleted user #${user_id}`,
+      });
+    } catch (error) {
+      let message = Logger.message(req, res, 500, "error", error.stack);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }

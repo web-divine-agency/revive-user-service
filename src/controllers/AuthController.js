@@ -5,6 +5,7 @@ import Logger from "../util/logger.js";
 import Validator from "../util/validator.js";
 
 import DatabaseService from "../services/DatabaseService.js";
+import LoggerService from "../services/LoggerService.js";
 
 export default {
   /**
@@ -82,7 +83,18 @@ export default {
         expiresIn: "1h",
       });
 
-      // To Do: Logger service goes here
+      // Create logs
+      try {
+        await LoggerService.create({
+          user_id: user[0].id,
+          module: "Auth",
+          note: `Logged in`,
+        });
+      } catch (error) {
+        let message = Logger.message(req, res, 500, "error", error.stack);
+        Logger.error([JSON.stringify(message)]);
+        return res.json(message);
+      }
 
       let message = Logger.message(req, res, 200, "user", { ...user[0], token: token });
       Logger.error([JSON.stringify(message)]);
