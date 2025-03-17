@@ -156,17 +156,19 @@ export default {
    * @returns
    */
   read: (req, res) => {
-    let validation = Validator.check([Validator.required(req.params, "role_id")]);
+    let message, validation, query;
+
+    validation = Validator.check([Validator.required(req.params, "role_id")]);
 
     if (!validation.pass) {
-      let message = Logger.message(req, res, 422, "error", validation.result);
+      message = Logger.message(req, res, 422, "error", validation.result);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
 
     const { role_id } = req.params;
 
-    let query = `
+    query = `
       SELECT
         ANY_VALUE(roles.id) AS role_id,
         roles.name AS role_name,
@@ -183,27 +185,36 @@ export default {
       GROUP BY roles.id
     `;
 
-    MysqlService.select(query)
+    DatabaseService.select({ query })
       .then((response) => {
-        let message = Logger.message(req, res, 200, "role", response[0]);
+        message = Logger.message(req, res, 200, "role", response.data.result[0]);
         Logger.out([JSON.stringify(message)]);
         return res.json(message);
       })
       .catch((error) => {
-        let message = Logger.message(req, res, 500, "error", error);
+        message = Logger.message(req, res, 500, "error", error.stack);
         Logger.error([JSON.stringify(message)]);
         return res.json(message);
       });
   },
 
+  /**
+   * Update role
+   * @param {*} req
+   * @param {*} res
+   * @returns
+   */
   update: async (req, res) => {
-    let validation = Validator.check([
+    let message, validation;
+
+    validation = Validator.check([
       Validator.required(req.params, "role_id"),
       Validator.required(req.body, "name"),
+      Validator.required(req.body, "permission_ids"),
     ]);
 
     if (!validation.pass) {
-      let message = Logger.message(req, res, 422, "error", validation.result);
+      message = Logger.message(req, res, 422, "error", validation.result);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
@@ -211,16 +222,14 @@ export default {
     const { role_id } = req.params;
     const { name, description, permission_ids } = req.body;
 
-    if (!permission_ids || !permission_ids.length) {
-      let message = Logger.message(req, res, 422, "error", { permission_ids: "required" });
-      Logger.error([JSON.stringify(message)]);
-      return res.json(message);
-    }
-
     try {
-      await MysqlService.update("roles", { name: name, description: description }, { id: role_id });
+      await DatabaseService.update({
+        table: "roles",
+        data: { name: name, description: description },
+        params: { id: role_id },
+      });
     } catch (error) {
-      let message = Logger.message(req, res, 500, "error", error);
+      let message = Logger.message(req, res, 500, "error", error.stack);
       Logger.error([JSON.stringify(message)]);
       return res.json(message);
     }
@@ -228,22 +237,25 @@ export default {
     // Remove and insert role_permissions
     permission_ids?.map(async (item) => {
       try {
-        await MysqlService.delete("role_permissions", {
-          role_id: role_id,
+        await DatabaseService.delete({
+          table: "role_permissions",
+          params: {
+            role_id,
+          },
         });
 
-        await MysqlService.create("role_permissions", {
-          role_id: role_id,
-          permission_id: item,
+        await DatabaseService.create({
+          table: "role_permissions",
+          data: { role_id: role_id, permission_id: item },
         });
       } catch (error) {
-        let message = Logger.message(req, res, 500, "error", error);
+        let message = Logger.message(req, res, 500, "error", error.stack);
         Logger.error([JSON.stringify(message)]);
         return res.json(message);
       }
     });
 
-    let message = Logger.message(req, res, 200, "updated", true);
+    message = Logger.message(req, res, 200, "updated", true);
     Logger.error([JSON.stringify(message)]);
     return res.json(message);
   },
