@@ -6,7 +6,10 @@ export default {
    * @returns
    */
   required: (req, field) => {
-    return req[field] ? { key: field, value: "valid" } : { key: field, value: "required" };
+    if (!req[field] || (Array.isArray(req[field]) && req[field].length === 0)) {
+      return { key: field, value: "required" };
+    }
+    return { key: field, value: "valid" };
   },
 
   /**
