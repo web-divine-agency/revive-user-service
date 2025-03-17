@@ -49,6 +49,11 @@ export default {
     }
   },
 
+  /**
+   * Update resource
+   * @param {*} payload
+   * @returns
+   */
   update: async (payload) => {
     try {
       return await axios({
@@ -66,6 +71,11 @@ export default {
     }
   },
 
+  /**
+   * Delete resource
+   * @param {*} payload
+   * @returns
+   */
   delete: async (payload) => {
     try {
       return await axios({
@@ -83,6 +93,11 @@ export default {
     }
   },
 
+  /**
+   * Get user
+   * @param {*} payload
+   * @returns
+   */
   user: async (payload) => {
     try {
       return await axios({
